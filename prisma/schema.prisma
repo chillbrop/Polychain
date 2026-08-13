@@ -1,0 +1,415 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum AccountStatus {
+  ACTIVE
+  SUSPENDED
+  VERIFYING
+}
+
+enum KycStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  NOT_SUBMITTED
+}
+
+enum TransactionType {
+  DEPOSIT
+  WITHDRAWAL
+  REFERRAL_COMMISSION
+  BONUS
+  INVESTMENT
+  PROFIT
+}
+
+enum TransactionStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  CANCELLED
+  PROCESSING
+  REJECTED
+}
+
+enum InvestmentStatus {
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+enum WithdrawalStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  REJECTED
+  CANCELLED
+}
+
+enum TicketStatus {
+  OPEN
+  PENDING
+  RESOLVED
+  CLOSED
+}
+
+enum TicketPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum Currency {
+  USDT_TRC20
+  BTC
+  ETH
+  BANK
+}
+
+enum PaymentProvider {
+  PAYSTACK
+  MPESA
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+model User {
+  id                    String                   @id @default(cuid())
+  email                 String                   @unique
+  username              String                   @unique
+  passwordHash          String
+  firstName             String?
+  lastName              String?
+  phone                 String?
+  country               String?
+  avatarUrl             String?
+  role                  Role                     @default(USER)
+  status                AccountStatus            @default(ACTIVE)
+  kycStatus             KycStatus                @default(NOT_SUBMITTED)
+  kycDocuments          KycDocument[]
+  twoFactor             Boolean                  @default(false)
+  twoFactorSecret       String?
+  emailVerified         Boolean                  @default(false)
+  referralCode          String                   @unique
+  referredById          String?
+  referredBy            User?                    @relation("Referrals", fields: [referredById], references: [id], onDelete: SetNull)
+  referrals             User[]                   @relation("Referrals")
+  walletBalance         Float                    @default(0)
+  profitBalance         Float                    @default(0)
+  totalDeposited        Float                    @default(0)
+  totalWithdrawn        Float                    @default(0)
+  totalInvested         Float                    @default(0)
+  totalReferralEarnings Float                    @default(0)
+  notifications         Notification[]
+  transactions          Transaction[]
+  investments           Investment[]
+  withdrawals           Withdrawal[]
+  depositRequests       DepositRequest[]
+  payments              Payment[]
+  wallets               Wallet[]
+  auditLogs             AuditLog[]
+  loginAttempts         LoginAttempt[]
+  passwordReset         PasswordResetToken[]
+  verificationTokens    EmailVerificationToken[]
+  refreshTokens         RefreshToken[]
+  tickets               Ticket[]
+  ticketMessages        TicketMessage[]
+  activities            Activity[]
+  createdAt             DateTime                 @default(now())
+  updatedAt             DateTime                 @updatedAt
+
+  @@index([referredById])
+  @@index([role])
+  @@index([createdAt])
+}
+
+model KycDocument {
+  id          String    @id @default(cuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type        String
+  documentUrl String
+  status      KycStatus @default(PENDING)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model EmailVerificationToken {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String   @unique
+  expiresAt DateTime
+  revoked   Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model LoginAttempt {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  success   Boolean
+  ip        String?
+  userAgent String?
+  createdAt DateTime @default(now())
+}
+
+model InvestmentPlan {
+  id           String       @id @default(cuid())
+  name         String
+  slug         String       @unique
+  description  String
+  minAmount    Float
+  maxAmount    Float
+  dailyReturn  Float
+  durationDays Int
+  totalReturn  Float
+  features     Json         @default("[]")
+  popular      Boolean      @default(false)
+  active       Boolean      @default(true)
+  icon         String       @default("TrendingUp")
+  color        String       @default("#F4B400")
+  sortOrder    Int          @default(0)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  investments  Investment[]
+}
+
+model Investment {
+  id            String           @id @default(cuid())
+  userId        String
+  user          User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  planId        String
+  plan          InvestmentPlan   @relation(fields: [planId], references: [id])
+  amount        Float
+  dailyReturn   Float
+  durationDays  Int
+  totalReturn   Float
+  status        InvestmentStatus @default(ACTIVE)
+  profitEarned  Float            @default(0)
+  startDate     DateTime         @default(now())
+  endDate       DateTime
+  lastAccruedAt DateTime?
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  @@index([userId])
+  @@index([planId])
+  @@index([status])
+}
+
+model Wallet {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  currency  Currency
+  address   String
+  label     String?
+  isDefault Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, currency])
+}
+
+model DepositRequest {
+  id         String            @id @default(cuid())
+  userId     String
+  user       User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amount     Float
+  currency   Currency          @default(USDT_TRC20)
+  txHash     String?
+  network    String?
+  status     TransactionStatus @default(PENDING)
+  note       String?
+  reviewedBy String?
+  reviewedAt DateTime?
+  createdAt  DateTime          @default(now())
+  updatedAt  DateTime          @updatedAt
+
+  @@index([userId])
+  @@index([status])
+}
+
+model Payment {
+  id                String          @id @default(cuid())
+  userId            String
+  user              User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider          PaymentProvider
+  status            PaymentStatus   @default(PENDING)
+  reference         String          @unique
+  providerReference String?         @unique
+  amount            Float
+  currency          String
+  exchangeRate      Float
+  creditedAmount    Float
+  phone             String?
+  metadata          Json?
+  paidAt            DateTime?
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+
+  @@index([userId])
+  @@index([provider, status])
+}
+
+model Withdrawal {
+  id         String           @id @default(cuid())
+  userId     String
+  user       User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amount     Float
+  fee        Float            @default(0)
+  currency   Currency         @default(USDT_TRC20)
+  address    String
+  status     WithdrawalStatus @default(PENDING)
+  note       String?
+  reviewedBy String?
+  reviewedAt DateTime?
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+
+  @@index([userId])
+  @@index([status])
+}
+
+model Transaction {
+  id           String            @id @default(cuid())
+  userId       String
+  user         User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type         TransactionType
+  amount       Float
+  fee          Float             @default(0)
+  status       TransactionStatus @default(COMPLETED)
+  description  String
+  reference    String            @unique
+  currency     Currency          @default(USDT_TRC20)
+  balanceAfter Float?
+  metadata     Json?
+  createdAt    DateTime          @default(now())
+
+  @@index([userId])
+  @@index([type])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  message   String
+  type      String   @default("info")
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([read])
+}
+
+model Activity {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  action    String
+  metadata  Json?
+  ip        String?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+model Ticket {
+  id        String          @id @default(cuid())
+  userId    String
+  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subject   String
+  category  String
+  priority  TicketPriority  @default(MEDIUM)
+  status    TicketStatus    @default(OPEN)
+  messages  TicketMessage[]
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+
+  @@index([userId])
+  @@index([status])
+}
+
+model TicketMessage {
+  id         String   @id @default(cuid())
+  ticketId   String
+  ticket     Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  senderId   String?
+  sender     User?    @relation(fields: [senderId], references: [id], onDelete: SetNull)
+  senderRole Role
+  message    String
+  createdAt  DateTime @default(now())
+}
+
+model Banner {
+  id        String   @id @default(cuid())
+  title     String
+  subtitle  String?
+  imageUrl  String?
+  link      String?
+  active    Boolean  @default(true)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model SiteSetting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  action    String
+  entity    String?
+  entityId  String?
+  details   Json?
+  ip        String?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([createdAt])
+}
