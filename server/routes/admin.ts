@@ -126,6 +126,17 @@ router.patch("/users/:id", validate(userUpdateSchema), async (req: AuthRequest, 
   res.json({ user: sanitizeUser(user) });
 });
 
+router.delete("/users/:id", async (req: AuthRequest, res) => {
+  const target = await prisma.user.findUnique({ where: { id: routeId(req) } });
+  if (!target) return res.status(404).json({ error: "User not found" });
+  if (target.role === "ADMIN") return res.status(403).json({ error: "Admin accounts cannot be deleted" });
+  if (target.id === req.userId) return res.status(403).json({ error: "You cannot delete your own account" });
+
+  await prisma.user.delete({ where: { id: target.id } });
+  await log(req, "DELETE_USER", "User", target.id, { username: target.username, email: target.email });
+  res.json({ ok: true, message: "User deleted" });
+});
+
 router.get("/deposits", async (req, res) => {
   const { page = "1", perPage = "20", status, search } = req.query;
   const where: Record<string, unknown> = {};

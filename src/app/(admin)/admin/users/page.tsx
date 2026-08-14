@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Search, UserCog, Eye } from "lucide-react";
-import { get, patch } from "@/lib/api-client";
+import { Search, UserCog, Eye, Trash2 } from "lucide-react";
+import { get, patch, del } from "@/lib/api-client";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -34,6 +34,7 @@ export default function AdminUsersPage() {
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState<string>("");
   const [selected, setSelected] = useState<UserRow | null>(null);
+  const [confirmUser, setConfirmUser] = useState<UserRow | null>(null);
   const queryClient = useQueryClient();
 
   const { data, isLoading } = useQuery({
@@ -122,9 +123,16 @@ export default function AdminUsersPage() {
                 <TableCell className="text-right">{u._count.referrals}</TableCell>
                 <TableCell className="text-xs text-white/40">{formatDate(u.createdAt)}</TableCell>
                 <TableCell className="text-right">
-                  <Button variant="ghost" size="iconSm" onClick={() => setSelected(u)} aria-label="View user">
-                    <Eye className="h-4 w-4" />
-                  </Button>
+                  <div className="flex items-center justify-end gap-1">
+                    <Button variant="ghost" size="iconSm" onClick={() => setSelected(u)} aria-label="View user">
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                    {u.role !== "ADMIN" && (
+                      <Button variant="ghost" size="iconSm" onClick={() => setConfirmUser(u)} aria-label="Delete user" className="text-red-400 hover:text-red-300">
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
                 </TableCell>
               </TableRow>
             ))}
@@ -141,13 +149,68 @@ export default function AdminUsersPage() {
           open={Boolean(selected)}
           onClose={() => setSelected(null)}
           onUpdated={() => queryClient.invalidateQueries({ queryKey: ["admin-users"] })}
+          onDelete={() => { setSelected(null); setConfirmUser(selected); }}
+        />
+      )}
+
+      {confirmUser && (
+        <DeleteUserDialog
+          user={confirmUser}
+          open={Boolean(confirmUser)}
+          onClose={() => setConfirmUser(null)}
+          onDeleted={() => {
+            setConfirmUser(null);
+            queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+            queryClient.invalidateQueries({ queryKey: ["admin-dashboard"] });
+          }}
         />
       )}
     </div>
   );
 }
 
-function UserDetailDialog({ user, open, onClose, onUpdated }: { user: UserRow; open: boolean; onClose: () => void; onUpdated: () => void }) {
+function DeleteUserDialog({ user, open, onClose, onDeleted }: { user: UserRow; open: boolean; onClose: () => void; onDeleted: () => void }) {
+  const [busy, setBusy] = useState(false);
+
+  const handleDelete = async () => {
+    setBusy(true);
+    try {
+      await del(`/admin/users/${user.id}`);
+      toast({ title: "User deleted", description: `${user.username} was permanently deleted.`, variant: "success" });
+      onDeleted();
+    } catch (e) {
+      toast({ title: "Delete failed", description: (e as Error).message, variant: "destructive" });
+      setBusy(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => !o && !busy && onClose()}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-3 text-red-400">
+            <Trash2 className="h-5 w-5" />
+            Delete user
+          </DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4">
+          <p className="text-sm text-white/60">
+            Permanently delete <span className="font-semibold text-white">{user.username}</span>? All of their deposits,
+            investments, transactions, and account data will be removed. This cannot be undone.
+          </p>
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" size="sm" onClick={onClose} disabled={busy}>Cancel</Button>
+            <Button variant="destructive" size="sm" onClick={handleDelete} disabled={busy}>
+              {busy ? "Deleting..." : "Delete permanently"}
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function UserDetailDialog({ user, open, onClose, onUpdated, onDelete }: { user: UserRow; open: boolean; onClose: () => void; onUpdated: () => void; onDelete: () => void }) {
   const queryClient = useQueryClient();
 
   const updateUser = async (data: Record<string, unknown>, message: string) => {
@@ -218,6 +281,15 @@ function UserDetailDialog({ user, open, onClose, onUpdated }: { user: UserRow; o
               </div>
             </div>
           </div>
+
+          {user.role !== "ADMIN" && (
+            <div className="flex justify-end border-t border-white/[0.06] pt-4">
+              <Button variant="destructive" size="sm" onClick={onDelete}>
+                <Trash2 className="h-4 w-4" />
+                Delete user
+              </Button>
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>
