@@ -2,6 +2,13 @@
 const nextConfig = {
   reactStrictMode: true,
   output: "standalone",
+  experimental: {
+    webpackBuildWorker: false,
+  },
+  webpack(config) {
+    config.optimization.minimize = false;
+    return config;
+  },
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "**" },
