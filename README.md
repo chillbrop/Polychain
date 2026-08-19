@@ -47,11 +47,6 @@ Open http://localhost:3000
 
 | Role  | Login                          | Password        |
 |-------|--------------------------------|-----------------|
-| Admin | `admin@polychaincapital.example`       | `Admin@12345`   |
-| User  | `grace@example.com` / `liam@example.com` | `Password123!` |
-
-The admin account is also created automatically by the server bootstrap if it doesn't exist.
-
 ## Scripts
 
 | Command             | Description                              |
@@ -128,3 +123,4 @@ See `docs/API.md` for the full REST API reference and `Dockerfile` / `docker-com
 
 Proprietary.
 # Polychain
+
