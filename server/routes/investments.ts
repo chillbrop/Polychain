@@ -4,6 +4,7 @@ import { prisma } from "../prisma";
 import { validate } from "../middleware/error";
 import { requireAuth, AuthRequest } from "../middleware/auth";
 import { generateReference } from "../utils/helpers";
+import { investmentCreatedEmail, notifyAdmins } from "../utils/mail";
 
 const router = Router();
 router.use(requireAuth);
@@ -11,65 +12,90 @@ router.use(requireAuth);
 export async function accrueProfits(userId: string) {
   const now = new Date();
   const investments = await prisma.investment.findMany({
-    where: { userId, status: "ACTIVE", endDate: { gt: now } },
+    where: { userId, status: "ACTIVE" },
     include: { plan: true },
   });
 
   for (const inv of investments) {
-    const last = inv.lastAccruedAt ?? inv.startDate;
-    const elapsedDays = Math.floor((now.getTime() - new Date(last).getTime()) / (24 * 3600 * 1000));
-    if (elapsedDays <= 0) continue;
+    await accrueInvestment(inv, now);
+  }
+}
 
-    const dailyProfit = inv.amount * (inv.dailyReturn / 100);
-    const profit = dailyProfit * elapsedDays;
-    const newEarned = Math.min(inv.totalReturn, inv.profitEarned + profit);
+export async function accrueAllProfits() {
+  const now = new Date();
+  const investments = await prisma.investment.findMany({
+    where: { status: "ACTIVE" },
+    include: { plan: true },
+  });
 
+  let completed = 0;
+  for (const inv of investments) {
+    const didComplete = await accrueInvestment(inv, now);
+    if (didComplete) completed += 1;
+  }
+  return { processed: investments.length, completed };
+}
+
+async function accrueInvestment(
+  inv: { id: string; userId: string; amount: number; dailyReturn: number; durationDays: number; totalReturn: number; profitEarned: number; startDate: Date; endDate: Date; lastAccruedAt: Date | null; plan: { name: string } },
+  now: Date,
+) {
+  const expectedProfit = inv.amount * (inv.totalReturn / 100);
+  const last = inv.lastAccruedAt ?? inv.startDate;
+  const elapsedDays = Math.floor((now.getTime() - new Date(last).getTime()) / (24 * 3600 * 1000));
+  if (elapsedDays <= 0) return false;
+
+  const dailyProfit = inv.amount * (inv.dailyReturn / 100);
+  const profit = dailyProfit * elapsedDays;
+  const newEarned = Math.min(expectedProfit, inv.profitEarned + profit);
+
+  await prisma.$transaction([
+    prisma.investment.update({
+      where: { id: inv.id },
+      data: { profitEarned: newEarned, lastAccruedAt: now },
+    }),
+    prisma.user.update({
+      where: { id: inv.userId },
+      data: { profitBalance: { increment: newEarned - inv.profitEarned } },
+    }),
+    prisma.transaction.create({
+      data: {
+        userId: inv.userId,
+        type: "PROFIT",
+        amount: newEarned - inv.profitEarned,
+        status: "COMPLETED",
+        description: `Daily profit from ${inv.plan.name} plan`,
+        reference: generateReference("PRF"),
+      },
+    }),
+  ]);
+
+  if (newEarned >= expectedProfit) {
     await prisma.$transaction([
-      prisma.investment.update({
-        where: { id: inv.id },
-        data: { profitEarned: newEarned, lastAccruedAt: now },
-      }),
-      prisma.user.update({
-        where: { id: userId },
-        data: { profitBalance: { increment: newEarned - inv.profitEarned } },
-      }),
+      prisma.investment.update({ where: { id: inv.id }, data: { status: "COMPLETED", profitEarned: expectedProfit } }),
+      prisma.user.update({ where: { id: inv.userId }, data: { profitBalance: { increment: expectedProfit - newEarned } } }),
       prisma.transaction.create({
         data: {
-          userId,
+          userId: inv.userId,
           type: "PROFIT",
-          amount: newEarned - inv.profitEarned,
+          amount: expectedProfit - newEarned,
           status: "COMPLETED",
-          description: `Daily profit from ${inv.plan.name} plan`,
+          description: `Final profit payout from ${inv.plan.name} plan`,
           reference: generateReference("PRF"),
         },
       }),
+      prisma.notification.create({
+        data: {
+          userId: inv.userId,
+          title: "Investment completed",
+          message: `Your ${inv.plan.name} investment has matured. Total profit of $${expectedProfit.toFixed(2)} has been credited.`,
+          type: "success",
+        },
+      }),
     ]);
-
-    if (newEarned >= inv.totalReturn) {
-      await prisma.$transaction([
-        prisma.investment.update({ where: { id: inv.id }, data: { status: "COMPLETED", profitEarned: inv.totalReturn } }),
-        prisma.user.update({ where: { id: userId }, data: { profitBalance: { increment: inv.totalReturn - newEarned } } }),
-        prisma.transaction.create({
-          data: {
-            userId,
-            type: "PROFIT",
-            amount: inv.totalReturn - newEarned,
-            status: "COMPLETED",
-            description: `Final profit payout from ${inv.plan.name} plan`,
-            reference: generateReference("PRF"),
-          },
-        }),
-        prisma.notification.create({
-          data: {
-            userId,
-            title: "Investment completed",
-            message: `Your ${inv.plan.name} investment has matured. Total profit of $${inv.totalReturn.toFixed(2)} has been credited.`,
-            type: "success",
-          },
-        }),
-      ]);
-    }
+    return true;
   }
+  return false;
 }
 
 router.get("/", async (req: AuthRequest, res) => {
@@ -133,6 +159,9 @@ router.post("/", validate(investSchema), async (req: AuthRequest, res) => {
     await tx.activity.create({ data: { userId: user.id, action: `Invested $${amount} in ${plan.name}` } });
     return inv;
   });
+
+  const { subject, html } = investmentCreatedEmail(user.username, user.email, plan.name, amount, plan.dailyReturn, plan.durationDays, endDate.toISOString());
+  notifyAdmins(subject, html).catch((err) => console.error("[mail] Failed to send investment notification", err));
 
   res.status(201).json({ investment, message: `Investment started. You will earn ${plan.dailyReturn}% daily for ${plan.durationDays} days.` });
 });

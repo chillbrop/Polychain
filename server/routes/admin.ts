@@ -5,6 +5,7 @@ import { validate } from "../middleware/error";
 import { requireAuth, requireAdmin, AuthRequest } from "../middleware/auth";
 import { sanitizeUser, paginate } from "../utils/helpers";
 import { accrueProfits } from "./investments";
+import { paymentReceivedEmail, notifyAdmins } from "../utils/mail";
 
 const router = Router();
 router.use(requireAuth, requireAdmin);
@@ -183,6 +184,18 @@ router.post("/deposits/:id/review", validate(depositActionSchema), async (req: A
       }),
     ]);
     await log(req, "APPROVE_DEPOSIT", "DepositRequest", deposit.id, { amount: deposit.amount });
+    const activeInvestments = await prisma.investment.findMany({
+      where: { userId: deposit.userId, status: "ACTIVE", endDate: { gt: new Date() } },
+      include: { plan: true },
+    });
+    const emailData = activeInvestments.map((inv) => ({
+      planName: inv.plan.name,
+      amount: inv.amount,
+      endDate: inv.endDate.toISOString(),
+      profitEarned: inv.profitEarned,
+    }));
+    const { subject, html } = paymentReceivedEmail(deposit.user.username, deposit.user.email, deposit.amount, deposit.currency, emailData);
+    notifyAdmins(subject, html).catch((err) => console.error("[mail] Failed to send deposit notification", err));
   } else {
     await prisma.$transaction([
       prisma.depositRequest.update({ where: { id: deposit.id }, data: { status: "REJECTED", reviewedBy: req.userId, reviewedAt: new Date(), note } }),

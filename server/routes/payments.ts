@@ -6,6 +6,7 @@ import { requireAuth, AuthRequest } from "../middleware/auth";
 import { validate } from "../middleware/error";
 import { prisma } from "../prisma";
 import { generateReference } from "../utils/helpers";
+import { paymentReceivedEmail, notifyAdmins } from "../utils/mail";
 
 const router = Router();
 
@@ -38,7 +39,7 @@ async function configuredRate(settingKey: string, environmentFallback: number) {
 async function creditPayment(payment: PaymentRecord, metadata?: object) {
   if (payment.status === "COMPLETED") return false;
 
-  return prisma.$transaction(async (tx) => {
+  const credited = await prisma.$transaction(async (tx) => {
     const claimed = await tx.payment.updateMany({
       where: { id: payment.id, status: "PENDING" },
       data: { status: "COMPLETED", paidAt: new Date(), ...(metadata ? { metadata } : {}) },
@@ -79,6 +80,25 @@ async function creditPayment(payment: PaymentRecord, metadata?: object) {
     await tx.activity.create({ data: { userId: payment.userId, action: `Completed ${payment.provider === "PAYSTACK" ? "Paystack" : "M-Pesa"} deposit` } });
     return true;
   });
+
+  if (credited) {
+    const user = await prisma.user.findUnique({ where: { id: payment.userId } });
+    if (user) {
+      const activeInvestments = await prisma.investment.findMany({
+        where: { userId: payment.userId, status: "ACTIVE", endDate: { gt: new Date() } },
+        include: { plan: true },
+      });
+      const emailData = activeInvestments.map((inv) => ({
+        planName: inv.plan.name,
+        amount: inv.amount,
+        endDate: inv.endDate.toISOString(),
+        profitEarned: inv.profitEarned,
+      }));
+      const { subject, html } = paymentReceivedEmail(user.username, user.email, payment.creditedAmount, payment.currency, emailData);
+      notifyAdmins(subject, html).catch((err) => console.error("[mail] Failed to send payment notification", err));
+    }
+  }
+  return credited;
 }
 
 async function verifyPaystack(reference: string) {

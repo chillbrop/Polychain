@@ -16,6 +16,7 @@ import publicRoutes from "./routes/public";
 import adminRoutes from "./routes/admin";
 import paymentRoutes from "./routes/payments";
 import { seedPlans, ensureAdmin } from "./utils/bootstrap";
+import { startCronJobs } from "./utils/cron";
 
 const app = express();
 
@@ -59,6 +60,7 @@ async function start() {
   await prisma.$connect();
   await seedPlans();
   await ensureAdmin();
+  startCronJobs();
   app.listen(config.port, () => {
     console.log(`Polychain Capital API running on http://localhost:${config.port}`);
   });

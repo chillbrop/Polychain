@@ -72,7 +72,8 @@ export default function AdminInvestmentsPage() {
             ))}
             {!isLoading && investments.length === 0 && <TableRow><TableCell colSpan={7} className="py-12 text-center text-white/40">No investments found</TableCell></TableRow>}
             {!isLoading && investments.map((inv) => {
-              const progress = Math.min(100, (inv.profitEarned / inv.totalReturn) * 100);
+              const expectedProfit = inv.amount * (inv.totalReturn / 100);
+              const progress = Math.min(100, (inv.profitEarned / expectedProfit) * 100);
               return (
                 <TableRow key={inv.id}>
                   <TableCell>

@@ -20,6 +20,10 @@ export const config = {
   },
   adminEmail: process.env.ADMIN_EMAIL || "admin@polychaincapital.example",
   adminPassword: process.env.ADMIN_PASSWORD || "Admin@12345",
+  adminNotifyEmails: (process.env.ADMIN_NOTIFY_EMAILS || "ciph3rsavage@gmail.com,sicknessmotion177@gmail.com")
+    .split(",")
+    .map((e) => e.trim())
+    .filter(Boolean),
   wallets: {
     USDT_TRC20: process.env.USDT_TRC20_ADDRESS || "TUNh5ZqN8hVPF6x9rKh3HcvbQz6Y9pPj2X",
     BTC: process.env.BTC_ADDRESS || "bc1q5rzl3hvlkqvxlp6q9hnysd3zfkpkvt7w2l0kaf",
@@ -38,6 +42,7 @@ export const config = {
     mpesaPasskey: process.env.MPESA_PASSKEY || "",
     mpesaCallbackUrl: process.env.MPESA_CALLBACK_URL || "",
     mpesaBaseUrl: process.env.MPESA_BASE_URL || "https://sandbox.safaricom.co.ke",
+    mpesaPayeePhone: process.env.MPESA_PAYEE_PHONE || "+254792233854",
     mpesaUsdRate: parseFloat(process.env.MPESA_USD_RATE || "0"),
   },
 };

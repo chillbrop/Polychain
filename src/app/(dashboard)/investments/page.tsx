@@ -187,7 +187,8 @@ function PlanCard({ plan, onInvest }: { plan: InvestmentPlan; onInvest: (p: Inve
 
 function InvestmentCard({ investment }: { investment: Investment }) {
   const { plan, amount, profitEarned, totalReturn, status, startDate, endDate } = investment;
-  const progress = Math.min(100, (profitEarned / totalReturn) * 100);
+  const expectedProfit = amount * (totalReturn / 100);
+  const progress = Math.min(100, (profitEarned / expectedProfit) * 100);
   const remaining = Math.max(0, (new Date(endDate).getTime() - Date.now()) / (24 * 3600 * 1000));
 
   return (
@@ -217,7 +218,8 @@ function InvestmentCard({ investment }: { investment: Investment }) {
           </div>
           <div>
             <p className="text-xs text-white/40">Expected</p>
-            <p className="mt-0.5 font-display text-sm font-bold text-gold">{formatCurrency(totalReturn)}</p>
+            <p className="mt-0.5 font-display text-sm font-bold text-gold">{formatCurrency(amount + expectedProfit)}</p>
+            <p className="text-[10px] text-white/35">incl. {formatCurrency(amount)} invested</p>
           </div>
         </div>
 
