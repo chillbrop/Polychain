@@ -21,6 +21,22 @@ const statusConfig: Record<string, { label: string; variant: "success" | "warnin
   MEDIUM: { label: "Medium", variant: "warning" },
   HIGH: { label: "High", variant: "destructive" },
   URGENT: { label: "Urgent", variant: "destructive" },
+  DRAFT: { label: "Draft", variant: "secondary" },
+  UPCOMING: { label: "Upcoming", variant: "gold", icon: <Clock className="h-3 w-3" /> },
+  CLOSING_SOON: { label: "Closing Soon", variant: "warning", icon: <Loader2 className="h-3 w-3" /> },
+  ALLOCATION_PENDING: { label: "Allocation Pending", variant: "warning", icon: <Clock className="h-3 w-3" /> },
+  ALLOCATION_COMPLETED: { label: "Allocation Completed", variant: "success", icon: <CheckCircle2 className="h-3 w-3" /> },
+  LISTED: { label: "Listed", variant: "success", icon: <CheckCircle2 className="h-3 w-3" /> },
+  SUBMITTED: { label: "Submitted", variant: "secondary" },
+  PAYMENT_PENDING: { label: "Payment Pending", variant: "warning", icon: <Clock className="h-3 w-3" /> },
+  PAID: { label: "Paid", variant: "success", icon: <CheckCircle2 className="h-3 w-3" /> },
+  UNDER_REVIEW: { label: "Under Review", variant: "gold", icon: <Loader2 className="h-3 w-3" /> },
+  SUBMITTED_TO_ISSUER: { label: "Submitted to Issuer", variant: "gold", icon: <AlertTriangle className="h-3 w-3" /> },
+  ALLOCATED: { label: "Allocated", variant: "success", icon: <CheckCircle2 className="h-3 w-3" /> },
+  PARTIALLY_ALLOCATED: { label: "Partially Allocated", variant: "warning", icon: <AlertTriangle className="h-3 w-3" /> },
+  NOT_ALLOCATED: { label: "Not Allocated", variant: "secondary", icon: <Ban className="h-3 w-3" /> },
+  REFUND_PENDING: { label: "Refund Pending", variant: "warning", icon: <Clock className="h-3 w-3" /> },
+  REFUNDED: { label: "Refunded", variant: "secondary", icon: <Ban className="h-3 w-3" /> },
 };
 
 export function StatusBadge({

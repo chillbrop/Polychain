@@ -10,6 +10,11 @@ datasource db {
 enum Role {
   USER
   ADMIN
+  SUPER_ADMIN
+  IPO_MANAGER
+  COMPLIANCE_OFFICER
+  FINANCE_OFFICER
+  CUSTOMER_SUPPORT
 }
 
 enum AccountStatus {
@@ -32,6 +37,8 @@ enum TransactionType {
   BONUS
   INVESTMENT
   PROFIT
+  IPO_SUBSCRIPTION
+  IPO_REFUND
 }
 
 enum TransactionStatus {
@@ -90,6 +97,47 @@ enum PaymentStatus {
   CANCELLED
 }
 
+enum IpoStatus {
+  DRAFT
+  UPCOMING
+  OPEN
+  CLOSING_SOON
+  CLOSED
+  ALLOCATION_PENDING
+  ALLOCATION_COMPLETED
+  LISTED
+  COMPLETED
+}
+
+enum IpoApplicationStatus {
+  SUBMITTED
+  PAYMENT_PENDING
+  PAID
+  UNDER_REVIEW
+  SUBMITTED_TO_ISSUER
+  ALLOCATED
+  PARTIALLY_ALLOCATED
+  NOT_ALLOCATED
+  REFUND_PENDING
+  REFUNDED
+  COMPLETED
+}
+
+enum IpoRefundStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum IpoDocumentType {
+  PROSPECTUS
+  FINANCIALS
+  UPLOAD
+  NOTICE
+  RESULT
+}
+
 model User {
   id                    String                   @id @default(cuid())
   email                 String                   @unique
@@ -132,6 +180,9 @@ model User {
   tickets               Ticket[]
   ticketMessages        TicketMessage[]
   activities            Activity[]
+  ipoApplications       IpoApplication[]         @relation("IpoApplications")
+  ipoInvestorProfile    IpoInvestorProfile?
+  ipoRefunds            IpoRefund[]              @relation("IpoRefunds")
   createdAt             DateTime                 @default(now())
   updatedAt             DateTime                 @updatedAt
 
@@ -412,4 +463,141 @@ model AuditLog {
 
   @@index([userId])
   @@index([createdAt])
+}
+
+model Ipo {
+  id              String           @id @default(cuid())
+  slug            String           @unique
+  name            String
+  issuer          String
+  ticker          String?
+  exchange        String?
+  logoUrl         String?
+  tagline         String
+  overview        String
+  keyFacts        Json             @default("[]")
+  riskDisclaimers String           @default("Investing in an initial public offering involves significant risk. Prices may fall as well as rise and past performance is not a guide to future returns. This page does not constitute an offer or investment advice and no returns or allocations are guaranteed.")
+  pricePerShare   Float
+  totalShares     Float
+  minimumShares   Int              @default(10)
+  maximumShares   Int?
+  greenshoePct    Float            @default(0)
+  feePct          Float            @default(0)
+  currency        String           @default("NGN")
+  openDate        DateTime?
+  closeDate       DateTime?
+  allotmentDate   DateTime?
+  listingDate     DateTime?
+  status          IpoStatus        @default(DRAFT)
+  published       Boolean          @default(false)
+  sandbox         Boolean          @default(true)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  applications    IpoApplication[]
+  documents       IpoDocument[]
+  refunds         IpoRefund[]
+
+  @@index([status])
+  @@index([published])
+}
+
+model IpoApplication {
+  id                 String               @id @default(cuid())
+  ipoId              String
+  ipo                Ipo                  @relation(fields: [ipoId], references: [id], onDelete: Cascade)
+  userId             String
+  user               User                 @relation("IpoApplications", fields: [userId], references: [id], onDelete: Cascade)
+  reference          String               @unique
+  shares             Int
+  pricePerShare      Float
+  amountNgn          Float
+  feeNgn             Float                @default(0)
+  exchangeRate       Float
+  amountUsd          Float
+  status             IpoApplicationStatus @default(SUBMITTED)
+  sandbox            Boolean              @default(false)
+  allocationShares   Int?
+  allocationRate     Float?
+  allocatedAmountNgn Float?
+  transactionRef     String?
+  submittedAt        DateTime             @default(now())
+  paidAt             DateTime?
+  allocatedAt        DateTime?
+  refundedAt         DateTime?
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+  refund             IpoRefund?
+
+  @@unique([userId, ipoId])
+  @@index([ipoId, status])
+  @@index([userId])
+}
+
+model IpoInvestorProfile {
+  id               String    @id @default(cuid())
+  userId           String    @unique
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fullName         String
+  dob              String?
+  gender           String?
+  nationality      String
+  residencyCountry String
+  city             String?
+  address          String?
+  bvnCipher        String?
+  bvnLast4         String?
+  bankName         String
+  accountName      String?
+  accountCipher    String?
+  cscsChn          String?
+  idType           String?
+  idCipher         String?
+  idDocumentUrl    String?
+  status           KycStatus @default(NOT_SUBMITTED)
+  adminNote        String?
+  reviewedBy       String?
+  reviewedAt       DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@index([status])
+}
+
+model IpoDocument {
+  id          String          @id @default(cuid())
+  ipoId       String
+  ipo         Ipo             @relation(fields: [ipoId], references: [id], onDelete: Cascade)
+  title       String
+  type        IpoDocumentType @default(UPLOAD)
+  url         String
+  description String?
+  published   Boolean         @default(true)
+  publishedAt DateTime?
+  createdAt   DateTime        @default(now())
+
+  @@index([ipoId])
+}
+
+model IpoRefund {
+  id            String          @id @default(cuid())
+  applicationId String          @unique
+  application   IpoApplication  @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  ipoId         String
+  ipo           Ipo             @relation(fields: [ipoId], references: [id], onDelete: Cascade)
+  userId        String
+  user          User            @relation("IpoRefunds", fields: [userId], references: [id], onDelete: Cascade)
+  reference     String          @unique
+  amountNgn     Float
+  amountUsd     Float
+  exchangeRate  Float
+  reason        String
+  status        IpoRefundStatus @default(PENDING)
+  note          String?
+  processedById String?
+  processedAt   DateTime?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  @@index([ipoId, status])
+  @@index([userId])
 }

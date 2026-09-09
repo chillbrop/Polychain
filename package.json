@@ -12,6 +12,7 @@
     "start:prod": "NODE_ENV=production node --experimental-strip-types server/index.ts",
     "start:render": "bash -c 'npx prisma db push --skip-generate && if [ \"$RUN_SEED\" = \"true\" ]; then npx tsx prisma/seed.ts; fi && (PORT=4000 npm run server & NODE_ENV=production PORT=$PORT npx next start)'",
     "lint": "next lint",
+    "test": "tsx --test server/test/**/*.test.ts",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:push": "prisma db push",

@@ -1,5 +1,6 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, Prisma } from "@prisma/client";
 import bcrypt from "bcryptjs";
+import { encryptSecret } from "../server/utils/crypto";
 
 const prisma = new PrismaClient();
 
@@ -178,7 +179,7 @@ async function main() {
     }),
   ]);
 
-  const [grace, liam] = demoUsers;
+  const [grace, liam, sofia, omar] = demoUsers;
   const growthPlan = await prisma.investmentPlan.findFirst({ where: { slug: "growth" } });
   const starterPlan = await prisma.investmentPlan.findFirst({ where: { slug: "starter" } });
 
@@ -286,15 +287,56 @@ async function main() {
         { key: "supportEmail", value: "support@polychaincapital.example" },
         { key: "minWithdraw", value: "10" },
         { key: "referralBonusPct", value: "10" },
-        { key: "paystackUsdRate", value: process.env.PAYSTACK_USD_RATE || "0" },
+        { key: "paystackUsdRate", value: process.env.PAYSTACK_USD_RATE || "1550" },
         { key: "mpesaUsdRate", value: process.env.MPESA_USD_RATE || "0" },
+        { key: "ipoSandbox", value: "true" },
       ],
       skipDuplicates: true,
     });
 
+    const investorProfiles: Prisma.IpoInvestorProfileCreateManyInput[] = [
+      {
+        userId: grace.id,
+        fullName: "Grace Okafor",
+        dob: "1991-04-16",
+        gender: "Female",
+        nationality: "Nigeria",
+        residencyCountry: "Nigeria",
+        city: "Lagos",
+        address: "12 Admiralty Way, Lekki Phase 1",
+        bvnCipher: encryptSecret("01234567890"),
+        bvnLast4: "7890",
+        bankName: "GTBank",
+        accountName: "Grace Okafor",
+        accountCipher: encryptSecret("0123456789"),
+        cscsChn: "CHN1002345",
+        idType: "NIN",
+        idCipher: encryptSecret("12345678901"),
+        status: "APPROVED",
+        reviewedAt: new Date(now - 5 * days),
+      },
+      {
+        userId: omar.id,
+        fullName: "Omar Hassan",
+        dob: "1988-11-02",
+        gender: "Male",
+        nationality: "Egypt",
+        residencyCountry: "Egypt",
+        city: "Cairo",
+        bankName: "Banque Misr",
+        accountName: "Omar Hassan",
+        accountCipher: encryptSecret("9876543210"),
+        idType: "Passport",
+        idCipher: encryptSecret("A12345678"),
+        status: "PENDING",
+      },
+    ];
+    await prisma.ipoInvestorProfile.createMany({ data: investorProfiles });
+
     void graceInv;
     void liamInv;
     console.log(`[seed] Created demo users: grace, liam, sofia, omar (password: Password123!)`);
+    console.log(`[seed] Seeded IPO investor profiles (grace: APPROVED, omar: PENDING)`);
   }
 }
 

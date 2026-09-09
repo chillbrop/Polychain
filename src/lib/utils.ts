@@ -14,6 +14,10 @@ export function formatCurrency(value: number, decimals = 2) {
   }).format(value);
 }
 
+export function formatUSD(value: number, decimals = 2) {
+  return formatCurrency(value, decimals);
+}
+
 export function formatCompact(value: number) {
   if (Math.abs(value) >= 1_000_000) {
     return `$${(value / 1_000_000).toFixed(2)}M`;
@@ -78,4 +82,20 @@ export function initials(name: string) {
 
 export function formatPercent(value: number) {
   return `${value >= 0 ? "+" : ""}${value.toFixed(2)}%`;
+}
+
+export function formatNaira(value: number, decimals = 2) {
+  return new Intl.NumberFormat("en-NG", {
+    style: "currency",
+    currency: "NGN",
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals,
+  }).format(value);
+}
+
+export function formatCompactNgn(value: number) {
+  if (Math.abs(value) >= 1_000_000_000) return `₦${(value / 1_000_000_000).toFixed(2)}B`;
+  if (Math.abs(value) >= 1_000_000) return `₦${(value / 1_000_000).toFixed(2)}M`;
+  if (Math.abs(value) >= 1_000) return `₦${(value / 1_000).toFixed(1)}K`;
+  return `₦${value.toFixed(0)}`;
 }

@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { verifyAccessToken } from "../utils/jwt";
 import { prisma } from "../prisma";
+import { isAdminRole } from "../utils/rbac";
 
 export interface AuthRequest extends Request {
   userId?: string;
@@ -29,7 +30,7 @@ export async function requireAuth(req: AuthRequest, res: Response, next: NextFun
 }
 
 export function requireAdmin(req: AuthRequest, res: Response, next: NextFunction) {
-  if (req.role !== "ADMIN") {
+  if (!isAdminRole(req.role)) {
     return res.status(403).json({ error: "Admin access required" });
   }
   next();

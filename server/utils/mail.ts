@@ -197,3 +197,102 @@ export async function notifyAdmins(subject: string, html: string) {
   }
   return results;
 }
+
+function ipoShell(title: string, body: string) {
+  return `
+    <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:32px;background:#0A1A33;border-radius:16px;color:#fff">
+      <h2 style="color:#F4B400;margin:0 0 8px">Polychain Capital</h2>
+      <h3 style="margin:0 0 16px">${title}</h3>
+      ${body}
+      <p style="color:#64748b;font-size:12px;margin:24px 0 0">This is an automated message from Polychain Capital.</p>
+    </div>`;
+}
+
+export function ipoNewApplicationEmail(
+  args: {
+    username: string;
+    email: string;
+    ipoName: string;
+    shares: number;
+    amountNgn: number;
+  },
+  toAdmin: boolean,
+) {
+  const { username, email, ipoName, shares, amountNgn } = args;
+  const body = `
+    <div style="background:rgba(244,180,0,0.08);border:1px solid rgba(244,180,0,0.25);border-radius:12px;padding:16px;margin-bottom:20px">
+      <p style="margin:0;color:#F4B400;font-size:13px">${ipoName}</p>
+      <p style="margin:4px 0 0;font-size:26px;font-weight:700;color:#fff">${shares.toLocaleString()} shares</p>
+      <p style="margin:4px 0 0;font-size:20px;font-weight:700;color:#F4B400">₦${amountNgn.toLocaleString(undefined, { maximumFractionDigits: 2 })}</p>
+    </div>
+    <table style="width:100%;border-collapse:collapse;margin-bottom:16px">
+      <tr><td style="padding:6px 0;color:#64748b">Applicant</td><td style="padding:6px 0;color:#fff;text-align:right">${username}</td></tr>
+      <tr><td style="padding:6px 0;color:#64748b">Email</td><td style="padding:6px 0;color:#fff;text-align:right">${email}</td></tr>
+    </table>`;
+  return {
+    subject: toAdmin ? `📋 New IPO Subscription — ${ipoName} by ${username}` : `IPO Subscription Received — ${ipoName}`,
+    html: ipoShell("IPO Subscription" + (toAdmin ? " (Admin)" : ""), body),
+  };
+}
+
+export function ipoPaidEmail(args: {
+  username: string;
+  email: string;
+  ipoName: string;
+  shares: number;
+  amountUsd: number;
+  reference: string;
+}) {
+  const { username, email, ipoName, shares, amountUsd, reference } = args;
+  const body = `
+    <div style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.25);border-radius:12px;padding:16px;margin-bottom:20px">
+      <p style="margin:0;color:#6ee7b7;font-size:13px">${ipoName} · ${shares.toLocaleString()} shares</p>
+      <p style="margin:4px 0 0;font-size:28px;font-weight:700;color:#fff">$${amountUsd.toFixed(2)} <span style="font-size:14px;color:#6ee7b7">USD</span></p>
+    </div>
+    <table style="width:100%;border-collapse:collapse;margin-bottom:16px">
+      <tr><td style="padding:6px 0;color:#64748b">Applicant</td><td style="padding:6px 0;color:#fff;text-align:right">${username} (${email})</td></tr>
+      <tr><td style="padding:6px 0;color:#64748b">Reference</td><td style="padding:6px 0;color:#F4B400;text-align:right;font-weight:600">${reference}</td></tr>
+    </table>`;
+  return { subject: `✅ IPO Subscription Paid — ${ipoName} by ${username}`, html: ipoShell("IPO Payment Confirmed", body) };
+}
+
+export function ipoAllocationResultEmail(args: {
+  username: string;
+  email: string;
+  ipoName: string;
+  requestedShares: number;
+  allocatedShares: number;
+}) {
+  const { username, email, ipoName, requestedShares, allocatedShares } = args;
+  const statusLabel = allocatedShares === 0 ? "Not Allocated" : allocatedShares >= requestedShares ? "Fully Allocated" : "Partially Allocated";
+  const body = `
+    <div style="background:rgba(244,180,0,0.08);border:1px solid rgba(244,180,0,0.25);border-radius:12px;padding:16px;margin-bottom:20px">
+      <p style="margin:0;color:#94a3b8;font-size:13px">${ipoName}</p>
+      <p style="margin:4px 0 0;font-size:22px;font-weight:700;color:#fff">${statusLabel}</p>
+      <p style="margin:8px 0 0;color:#cbd5e1;font-size:14px">Requested ${requestedShares.toLocaleString()} · Allocated <span style="color:#F4B400;font-weight:700">${allocatedShares.toLocaleString()}</span> shares</p>
+    </div>
+    <table style="width:100%;border-collapse:collapse;margin-bottom:16px">
+      <tr><td style="padding:6px 0;color:#64748b">Applicant</td><td style="padding:6px 0;color:#fff;text-align:right">${username} (${email})</td></tr>
+    </table>`;
+  return { subject: `📊 IPO Allocation Result — ${ipoName}`, html: ipoShell("IPO Allocation", body) };
+}
+
+export function ipoRefundProcessedEmail(args: {
+  username: string;
+  email: string;
+  ipoName: string;
+  amountUsd: number;
+  reference: string;
+}) {
+  const { username, email, ipoName, amountUsd, reference } = args;
+  const body = `
+    <div style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.25);border-radius:12px;padding:16px;margin-bottom:20px">
+      <p style="margin:0;color:#6ee7b7;font-size:13px">${ipoName} refund</p>
+      <p style="margin:4px 0 0;font-size:28px;font-weight:700;color:#fff">$${amountUsd.toFixed(2)} <span style="font-size:14px;color:#6ee7b7">USD</span></p>
+    </div>
+    <table style="width:100%;border-collapse:collapse;margin-bottom:16px">
+      <tr><td style="padding:6px 0;color:#64748b">Applicant</td><td style="padding:6px 0;color:#fff;text-align:right">${username} (${email})</td></tr>
+      <tr><td style="padding:6px 0;color:#64748b">Reference</td><td style="padding:6px 0;color:#F4B400;text-align:right;font-weight:600">${reference}</td></tr>
+    </table>`;
+  return { subject: `💸 IPO Refund Processed — ${ipoName}`, html: ipoShell("IPO Refund Confirmed", body) };
+}

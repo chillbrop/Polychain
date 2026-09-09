@@ -1,7 +1,7 @@
-export type Role = "USER" | "ADMIN";
+export type Role = "USER" | "ADMIN" | "SUPER_ADMIN" | "IPO_MANAGER" | "COMPLIANCE_OFFICER" | "FINANCE_OFFICER" | "CUSTOMER_SUPPORT";
 export type AccountStatus = "ACTIVE" | "SUSPENDED" | "VERIFYING";
 export type KycStatus = "PENDING" | "APPROVED" | "REJECTED" | "NOT_SUBMITTED";
-export type TransactionType = "DEPOSIT" | "WITHDRAWAL" | "REFERRAL_COMMISSION" | "BONUS" | "INVESTMENT" | "PROFIT";
+export type TransactionType = "DEPOSIT" | "WITHDRAWAL" | "REFERRAL_COMMISSION" | "BONUS" | "INVESTMENT" | "PROFIT" | "IPO_SUBSCRIPTION" | "IPO_REFUND";
 export type TransactionStatus = "PENDING" | "COMPLETED" | "FAILED" | "CANCELLED" | "PROCESSING" | "REJECTED";
 export type InvestmentStatus = "ACTIVE" | "COMPLETED" | "CANCELLED";
 export type WithdrawalStatus = "PENDING" | "PROCESSING" | "COMPLETED" | "REJECTED" | "CANCELLED";
@@ -172,4 +172,135 @@ export interface DashboardData {
 export interface Paginated<T> {
   data?: never;
   items?: T[];
+}
+
+export type IpoStatus =
+  | "DRAFT" | "UPCOMING" | "OPEN" | "CLOSING_SOON" | "CLOSED"
+  | "ALLOCATION_PENDING" | "ALLOCATION_COMPLETED" | "LISTED" | "COMPLETED";
+
+export type IpoApplicationStatus =
+  | "SUBMITTED" | "PAYMENT_PENDING" | "PAID" | "UNDER_REVIEW" | "SUBMITTED_TO_ISSUER"
+  | "ALLOCATED" | "PARTIALLY_ALLOCATED" | "NOT_ALLOCATED"
+  | "REFUND_PENDING" | "REFUNDED" | "COMPLETED";
+
+export type IpoRefundStatus = "PENDING" | "PROCESSING" | "COMPLETED" | "FAILED";
+export type IpoDocumentType = "PROSPECTUS" | "FINANCIALS" | "UPLOAD" | "NOTICE" | "RESULT";
+
+export interface IpoKeyFact {
+  label: string;
+  value: string | number;
+}
+
+export interface Ipo {
+  id: string;
+  slug: string;
+  name: string;
+  issuer: string;
+  ticker?: string | null;
+  exchange?: string | null;
+  logoUrl?: string | null;
+  tagline: string;
+  overview: string;
+  keyFacts: IpoKeyFact[];
+  riskDisclaimers?: string;
+  pricePerShare: number;
+  totalShares: number;
+  minimumShares: number;
+  maximumShares?: number | null;
+  greenshoePct: number;
+  feePct: number;
+  currency: string;
+  openDate?: string | null;
+  closeDate?: string | null;
+  allotmentDate?: string | null;
+  listingDate?: string | null;
+  status: IpoStatus;
+  published: boolean;
+  sandbox: boolean;
+  applicationsCount?: number;
+  paidNgn?: number;
+  paidShares?: number;
+  demandShares?: number;
+  subscriptionRatePct?: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface IpoDocument {
+  id: string;
+  ipoId: string;
+  title: string;
+  type: IpoDocumentType;
+  url: string;
+  description?: string | null;
+  published: boolean;
+  publishedAt?: string | null;
+  createdAt: string;
+}
+
+export interface IpoRefund {
+  id: string;
+  applicationId: string;
+  reference: string;
+  amountNgn: number;
+  amountUsd: number;
+  exchangeRate: number;
+  reason: string;
+  status: IpoRefundStatus;
+  note?: string | null;
+  processedAt?: string | null;
+  createdAt: string;
+  user?: { username: string; email: string };
+  ipo?: { name: string };
+  application?: { reference: string; shares: number; allocationShares?: number | null };
+}
+
+export interface IpoApplication {
+  id: string;
+  ipoId: string;
+  reference: string;
+  shares: number;
+  pricePerShare: number;
+  amountNgn: number;
+  feeNgn: number;
+  exchangeRate: number;
+  amountUsd: number;
+  status: IpoApplicationStatus;
+  sandbox: boolean;
+  allocationShares?: number | null;
+  allocationRate?: number | null;
+  allocatedAmountNgn?: number | null;
+  transactionRef?: string | null;
+  submittedAt: string;
+  paidAt?: string | null;
+  allocatedAt?: string | null;
+  refundedAt?: string | null;
+  createdAt: string;
+  ipo?: Ipo;
+  user?: { username: string; email: string };
+  refund?: IpoRefund | null;
+}
+
+export interface IpoInvestorProfile {
+  id: string;
+  userId: string;
+  fullName: string;
+  dob?: string | null;
+  gender?: string | null;
+  nationality: string;
+  residencyCountry: string;
+  city?: string | null;
+  address?: string | null;
+  bankName: string;
+  accountName?: string | null;
+  cscsChn?: string | null;
+  idType?: string | null;
+  idDocumentUrl?: string | null;
+  bvnLast4?: string | null;
+  accountLast4?: string | null;
+  status: KycStatus;
+  adminNote?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  user?: { username: string; email: string; createdAt: string };
 }

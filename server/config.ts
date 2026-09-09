@@ -24,6 +24,11 @@ export const config = {
     .split(",")
     .map((e) => e.trim())
     .filter(Boolean),
+  dataEncryptionKey: process.env.DATA_ENCRYPTION_KEY || "novavest-dev-data-encryption-key",
+  ipo: {
+    currency: process.env.IPO_CURRENCY || "NGN",
+    sandboxByDefault: process.env.IPO_SANDBOX_BY_DEFAULT !== "false",
+  },
   wallets: {
     USDT_TRC20: process.env.USDT_TRC20_ADDRESS || "TUNh5ZqN8hVPF6x9rKh3HcvbQz6Y9pPj2X",
     BTC: process.env.BTC_ADDRESS || "bc1q5rzl3hvlkqvxlp6q9hnysd3zfkpkvt7w2l0kaf",

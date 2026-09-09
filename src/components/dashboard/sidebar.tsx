@@ -16,9 +16,11 @@ import {
   X,
   Home,
   Menu,
+  Landmark,
 } from "lucide-react";
 import { Logo } from "@/components/shared/logo";
 import { cn } from "@/lib/utils";
+import { isAdminRole } from "@/lib/roles";
 import { useAuthStore } from "@/stores/auth-store";
 import { post } from "@/lib/api-client";
 import { useToast } from "@/components/ui/use-toast";
@@ -26,6 +28,7 @@ import { useToast } from "@/components/ui/use-toast";
 const navItems = [
   { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
   { href: "/investments", label: "Investments", icon: TrendingUp },
+  { href: "/ipo", label: "IPO", icon: Landmark },
   { href: "/wallet", label: "Wallet", icon: Wallet },
   { href: "/referrals", label: "Referrals", icon: Users },
   { href: "/profile", label: "Profile", icon: UserCircle },
@@ -81,7 +84,7 @@ export function DashboardSidebar() {
           );
         })}
 
-        {user?.role === "ADMIN" && (
+        {isAdminRole(user?.role) && (
           <>
             <p className="px-3 pb-2 pt-6 text-[11px] font-semibold uppercase tracking-widest text-white/30">Administration</p>
             <Link

@@ -15,7 +15,9 @@ import referralRoutes from "./routes/referrals";
 import publicRoutes from "./routes/public";
 import adminRoutes from "./routes/admin";
 import paymentRoutes from "./routes/payments";
-import { seedPlans, ensureAdmin } from "./utils/bootstrap";
+import ipoRoutes from "./routes/ipo";
+import ipoAdminRoutes from "./routes/ipoAdmin";
+import { seedPlans, ensureAdmin, seedIpoOffering } from "./utils/bootstrap";
 import { startCronJobs } from "./utils/cron";
 
 const app = express();
@@ -52,6 +54,8 @@ app.use("/api/wallet", walletRoutes);
 app.use("/api/referrals", referralRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/ipo", ipoRoutes);
+app.use("/api/admin/ipo", ipoAdminRoutes);
 
 app.use(notFound);
 app.use(errorHandler);
@@ -60,6 +64,7 @@ async function start() {
   await prisma.$connect();
   await seedPlans();
   await ensureAdmin();
+  await seedIpoOffering();
   startCronJobs();
   app.listen(config.port, () => {
     console.log(`Polychain Capital API running on http://localhost:${config.port}`);

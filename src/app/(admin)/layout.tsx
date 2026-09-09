@@ -18,6 +18,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     : pathname.includes("/deposits") ? "Deposit Approvals"
     : pathname.includes("/withdrawals") ? "Withdrawal Approvals"
     : pathname.includes("/investments") ? "Investment Management"
+    : pathname.includes("/ipo") ? "IPO Management"
     : pathname.includes("/plans") ? "Investment Plans"
     : pathname.includes("/tickets") ? "Support Tickets"
     : pathname.includes("/reports") ? "Reports"
