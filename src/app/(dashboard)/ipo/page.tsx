@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { Landmark, ShieldAlert, FolderOpen, ArrowRight } from "lucide-react";
+import { Landmark, FolderOpen, ArrowRight, TrendingUp } from "lucide-react";
 import { get } from "@/lib/api-client";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { SkeletonCardGrid } from "@/components/shared/skeletons";
+import { Progress } from "@/components/ui/progress";
 import { formatNaira, formatDate } from "@/lib/utils";
 import type { Ipo } from "@/types";
 
@@ -41,16 +42,6 @@ export default function IpoCentrePage() {
         </Link>
       </div>
 
-      {data?.sandboxMode && (
-        <div className="flex items-start gap-3 rounded-2xl border border-amber-400/30 bg-amber-400/10 p-4 text-sm text-amber-200">
-          <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0" />
-          <p>
-            <span className="font-semibold">Sandbox / test mode is active.</span> Submissions are recorded but no wallet is
-            debited, and no real money moves. Admin must disable sandbox mode before live investment functionality is enabled.
-          </p>
-        </div>
-      )}
-
       {isLoading && <SkeletonCardGrid count={3} />}
 
       {!isLoading && ipos.length === 0 && (
@@ -75,12 +66,6 @@ export default function IpoCentrePage() {
               <StatusBadge status={ipo.status} />
             </div>
 
-            {ipo.sandbox && (
-              <span className="inline-flex w-fit items-center rounded-lg border border-amber-400/30 bg-amber-400/10 px-2 py-0.5 text-[11px] font-medium text-amber-300">
-                Test offering
-              </span>
-            )}
-
             <div className="grid grid-cols-2 gap-3">
               <div className="rounded-xl bg-white/[0.04] p-3">
                 <p className="text-[11px] uppercase tracking-wider text-white/35">Price / share</p>
@@ -102,11 +87,24 @@ export default function IpoCentrePage() {
               </div>
             </div>
 
-            <div className="mt-auto flex items-center justify-between border-t border-white/[0.06] pt-4">
-              <span className="text-xs text-white/40">
-                {ipo.applicationsCount?.toLocaleString() ?? 0} shares subscribed · {ipo.subscriptionRatePct?.toFixed(2) ?? "0.0"}%
-                of offer
-              </span>
+            <div className="mt-auto">
+              <div className="flex items-center justify-between gap-3 text-xs">
+                <span className="flex items-center gap-1.5 text-white/45">
+                  <TrendingUp className="h-3.5 w-3.5 text-gold" />
+                  Subscription progress
+                </span>
+                <span className="font-mono font-semibold text-gold">
+                  {(ipo.subscriptionRatePct ?? 0).toFixed(2)}%
+                </span>
+              </div>
+              <Progress value={Math.min(100, ipo.subscriptionRatePct ?? 0)} className="mt-2 h-2" />
+              <p className="mt-2 text-xs text-white/40">
+                {ipo.applicationsCount?.toLocaleString() ?? 0} shares subscribed of {ipo.totalShares.toLocaleString()}
+              </p>
+            </div>
+
+            <div className="flex items-center justify-between border-t border-white/[0.06] pt-4">
+              <span className="text-xs text-white/40">Live demand</span>
               <span className="inline-flex items-center gap-1.5 text-sm font-medium text-gold">
                 View & subscribe
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />

@@ -6,7 +6,6 @@ import { useParams } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Landmark,
-  ShieldAlert,
   Calendar,
   FileText,
   ChevronLeft,
@@ -17,6 +16,10 @@ import {
   Loader2,
   Database,
   Banknote,
+  TrendingUp,
+  Users,
+  Circle,
+  Clock,
 } from "lucide-react";
 import { get, post } from "@/lib/api-client";
 import { useToast } from "@/components/ui/use-toast";
@@ -25,8 +28,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { StatusBadge } from "@/components/shared/status-badge";
-import { formatNaira, formatUSD, formatDate, cn } from "@/lib/utils";
-import type { Ipo, IpoApplication, IpoDocument, IpoInvestorProfile, KycStatus } from "@/types";
+import { Progress } from "@/components/ui/progress";
+import { formatNaira, formatUSD, formatDate, formatCompactNgn, cn } from "@/lib/utils";
+import type { Ipo, IpoApplication, IpoDocument, IpoInvestorProfile, KycStatus, IpoStatus } from "@/types";
 
 interface IpoDetailResponse {
   ipo: Ipo;
@@ -164,7 +168,7 @@ export default function IpoDetailPage() {
       const created = await post<{ application: IpoApplication }>(`/ipo/${slug}/subscriptions`, { shares: numericShares });
       const paid = await post<{ ok: boolean; sandbox: boolean; message: string; application: IpoApplication }>(`/ipo/subscriptions/${created.application.id}/pay`, {});
       setPaidApp(paid.application);
-      toast({ title: paid.sandbox ? "Recorded in TEST MODE" : "Subscription confirmed", description: paid.message, variant: paid.sandbox ? "default" : "success" });
+      toast({ title: "Subscription confirmed", description: "Your subscription was paid and recorded.", variant: "success" });
       queryClient.invalidateQueries({ queryKey: ["ipo-detail", slug] });
       setStep(3);
     } catch (e) {
@@ -190,11 +194,6 @@ export default function IpoDetailPage() {
               <div className="flex items-center gap-3">
                 <Landmark className="h-6 w-6 text-gold" />
                 <StatusBadge status={ipo.status} />
-                {ipo.sandbox && (
-                  <span className="inline-flex items-center gap-1 rounded-lg border border-amber-400/30 bg-amber-400/10 px-2 py-0.5 text-[11px] font-medium text-amber-300">
-                    <ShieldAlert className="h-3 w-3" /> Test offering
-                  </span>
-                )}
               </div>
               <h1 className="mt-3 font-display text-2xl font-bold sm:text-3xl">{ipo.name}</h1>
               <p className="mt-1 text-sm text-white/50">
@@ -229,15 +228,14 @@ export default function IpoDetailPage() {
         </div>
       </div>
 
-      {ipo.sandbox && (
-        <div className="flex items-start gap-3 rounded-2xl border border-amber-400/30 bg-amber-400/10 p-4 text-sm text-amber-200">
-          <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0" />
-          <p>
-            <span className="font-semibold">This offering is in test mode.</span> Subscriptions are recorded and simulated — your
-            wallet is <span className="font-semibold">not</span> debited and no money moves.
-          </p>
-        </div>
-      )}
+      <ProgressPanel
+        totalShares={ipo.totalShares}
+        demandShares={ipo.demandShares ?? 0}
+        pricePerShare={ipo.pricePerShare}
+        applicationsCount={data?.applicationsCount ?? 0}
+        closeDate={ipo.closeDate}
+        status={ipo.status}
+      />
 
       {paidApp ? (
         <SuccessPanel app={paidApp} ipo={ipo} />
@@ -434,14 +432,13 @@ export default function IpoDetailPage() {
                     {quote.walletBalance >= quote.quote.amountUsd ? <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0" /> : <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" />}
                     <p>
                       Wallet balance: <span className="font-mono font-semibold">{usd(quote.walletBalance)}</span>
-                      {quote.sandbox && <span className="mt-1 block text-xs opacity-70">Test offering — no real wallet debit.</span>}
                     </p>
                   </div>
                   <div className="flex justify-between">
                     <Button variant="ghost" onClick={() => setStep(1)}>Back</Button>
                     <Button variant="gold" onClick={confirmSubscribe} disabled={submitting}>
                       {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
-                      Confirm & {quote.sandbox ? "record" : "pay"}
+                      Confirm & pay
                     </Button>
                   </div>
                 </div>
@@ -464,11 +461,9 @@ function SuccessPanel({ app, ipo }: { app: IpoApplication; ipo: Ipo }) {
           <CheckCircle2 className="h-6 w-6" />
         </span>
         <div>
-          <h2 className="font-display text-xl font-bold">{app.sandbox ? "Subscription recorded (TEST MODE)" : "You're subscribed"} — {ipo.name}</h2>
+          <h2 className="font-display text-xl font-bold">You're subscribed — {ipo.name}</h2>
           <p className="mt-1 text-sm text-white/50">
-            {app.sandbox
-              ? "Because this offering is in test mode, no amount was charged and no wallet was debited."
-              : `$${app.amountUsd.toFixed(2)} was deducted from your wallet for ${app.shares.toLocaleString()} shares.`}
+            ${app.amountUsd.toFixed(2)} was deducted from your wallet for {app.shares.toLocaleString()} shares.
           </p>
         </div>
       </div>
@@ -521,6 +516,7 @@ function ApplicationPanel({ app, ipo }: { app: IpoApplication; ipo: Ipo }) {
           </div>
         ))}
       </div>
+      <SubscriptionTracker app={app} ipo={ipo} />
       {app.allocationShares != null && (
         <div className="mt-5 flex items-start gap-3 rounded-2xl border border-gold/25 bg-gold/[0.06] p-4 text-sm">
           <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-gold" />
@@ -586,6 +582,170 @@ function InfoPanel({ ipo, documents }: { ipo: Ipo; documents: IpoDocument[] }) {
           <Calendar className="h-4 w-4" /> Offer window: {ipo.openDate ? formatDate(ipo.openDate) : "—"} to {ipo.closeDate ? formatDate(ipo.closeDate) : "—"}
         </p>
       </div>
+    </div>
+  );
+}
+
+function ProgressPanel({
+  totalShares,
+  demandShares,
+  pricePerShare,
+  applicationsCount,
+  closeDate,
+  status,
+}: {
+  totalShares: number;
+  demandShares: number;
+  pricePerShare: number;
+  applicationsCount: number;
+  closeDate: string | null | undefined;
+  status: IpoStatus;
+}) {
+  const ratePct = totalShares > 0 ? Math.min(100, (demandShares / totalShares) * 100) : 0;
+  const raised = demandShares * pricePerShare;
+  const offer = totalShares * pricePerShare;
+  const remaining = Math.max(0, totalShares - demandShares);
+  const daysLeft = closeDate ? Math.max(0, Math.ceil((new Date(closeDate).getTime() - Date.now()) / 86400000)) : null;
+  const closed = status === "CLOSED" || status === "ALLOCATION_PENDING" || status === "ALLOCATION_COMPLETED" || status === "LISTED" || status === "COMPLETED";
+
+  return (
+    <div className="glass-card overflow-hidden">
+      <div className="flex flex-wrap items-start justify-between gap-4 border-b border-white/[0.06] p-6">
+        <div className="flex items-center gap-3">
+          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-gold/[0.12] text-gold">
+            <TrendingUp className="h-5 w-5" />
+          </span>
+          <div>
+            <h2 className="font-display text-lg font-semibold">Subscription progress</h2>
+            <p className="text-xs text-white/40">Track demand for this offering in real time.</p>
+          </div>
+        </div>
+        <div className="text-right">
+          <p className="font-mono text-2xl font-bold text-gold">{ratePct.toFixed(2)}%</p>
+          <p className="text-xs text-white/40">of the offer subscribed</p>
+        </div>
+      </div>
+
+      <div className="space-y-5 p-6">
+        <Progress value={ratePct} className="h-3" />
+
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="rounded-xl bg-white/[0.04] p-4">
+            <p className="text-[11px] uppercase tracking-wider text-white/35">IPO balance raised</p>
+            <p className="mt-1 font-mono text-lg font-semibold text-gold">{formatCompactNgn(raised)}</p>
+            <p className="text-xs text-white/40">of {formatCompactNgn(offer)} offer</p>
+          </div>
+          <div className="rounded-xl bg-white/[0.04] p-4">
+            <p className="text-[11px] uppercase tracking-wider text-white/35">Shares subscribed</p>
+            <p className="mt-1 font-mono text-lg font-semibold">{demandShares.toLocaleString()}</p>
+            <p className="text-xs text-white/40">of {totalShares.toLocaleString()} available</p>
+          </div>
+          <div className="rounded-xl bg-white/[0.04] p-4">
+            <p className="text-[11px] uppercase tracking-wider text-white/35">Applications</p>
+            <p className="mt-1 font-mono text-lg font-semibold">{applicationsCount.toLocaleString()}</p>
+            <p className="flex items-center gap-1 text-xs text-white/40"><Users className="h-3 w-3" /> investors so far</p>
+          </div>
+          <div className="rounded-xl bg-white/[0.04] p-4">
+            <p className="text-[11px] uppercase tracking-wider text-white/35">Available to subscribe</p>
+            <p className="mt-1 font-mono text-lg font-semibold">{remaining.toLocaleString()}</p>
+            <p className="text-xs text-white/40">shares remaining</p>
+          </div>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2 text-xs text-white/45">
+          {closed ? (
+            <span className="rounded-lg border border-gold/25 bg-gold/[0.06] px-2.5 py-1 font-medium text-gold">This offering is now closed</span>
+          ) : daysLeft !== null ? (
+            <span className="rounded-lg border border-white/10 bg-white/[0.04] px-2.5 py-1 font-medium">
+              <Clock className="mr-1 inline h-3.5 w-3.5 text-gold" />
+              {daysLeft === 0 ? "Closes today" : `${daysLeft} day${daysLeft === 1 ? "" : "s"} left to subscribe`}
+            </span>
+          ) : null}
+          {closeDate && <span>Offer closes {formatDate(closeDate)}.</span>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SubscriptionTracker({ app, ipo }: { app: IpoApplication; ipo: Ipo }) {
+  const milestones = [
+    { key: "submitted", label: "Subscription submitted", desc: "Your application was received." },
+    { key: "paid", label: "Payment confirmed", desc: "The subscription amount was deducted from your wallet." },
+    { key: "review", label: "Under issuer review", desc: "Your application has been passed to the issuer for vetting." },
+    { key: "allocation", label: "Allocation", desc: "Shares are allotted once the offer closes." },
+    { key: "completed", label: "Refund / completion", desc: "Excess funds are refunded or the subscription is completed." },
+  ];
+
+  const status = app.status;
+  let done = 0;
+  let active: number | null = null;
+  if (status === "SUBMITTED" || status === "PAYMENT_PENDING") {
+    done = 1;
+    active = 1;
+  } else if (status === "PAID") {
+    done = 2;
+    active = 2;
+  } else if (status === "UNDER_REVIEW" || status === "SUBMITTED_TO_ISSUER") {
+    done = 3;
+    active = 3;
+  } else if (status === "ALLOCATED" || status === "PARTIALLY_ALLOCATED" || status === "NOT_ALLOCATED" || status === "REFUND_PENDING") {
+    done = 4;
+    active = 4;
+  } else {
+    done = 5;
+    active = null;
+  }
+
+  const allocationDetail =
+    status === "ALLOCATED" || status === "PARTIALLY_ALLOCATED" || status === "NOT_ALLOCATED"
+      ? `${app.allocationShares?.toLocaleString() ?? 0} of ${app.shares.toLocaleString()} shares allotted`
+      : null;
+  const refundDetail = status === "REFUNDED" || status === "REFUND_PENDING" ? `₦${(app.amountNgn - (app.allocatedAmountNgn ?? 0)).toLocaleString()} excess` : null;
+
+  return (
+    <div className="mt-6 rounded-2xl border border-white/[0.08] bg-white/[0.02] p-6">
+      <div className="flex items-center gap-2">
+        <Clock className="h-4 w-4 text-gold" />
+        <h3 className="font-display font-semibold">Track your subscription</h3>
+      </div>
+      <p className="mt-1 text-xs text-white/40">Your application for {ipo.name} is moving through these stages.</p>
+
+      <ol className="mt-5 space-y-0">
+        {milestones.map((m, i) => {
+          const state = i < done ? "done" : i === active ? "active" : "pending";
+          return (
+            <li key={m.key} className="relative flex gap-3 pb-5 last:pb-0">
+              {i < milestones.length - 1 && (
+                <span
+                  className={cn(
+                    "absolute left-[11px] top-6 h-[calc(100%-16px)] w-px",
+                    i < done ? "bg-gold/50" : "bg-white/10",
+                  )}
+                />
+              )}
+              <span className="mt-0.5 shrink-0">
+                {state === "done" ? (
+                  <CheckCircle2 className="h-[22px] w-[22px] text-gold" />
+                ) : state === "active" ? (
+                  <Loader2 className="h-[22px] w-[22px] animate-spin text-gold" />
+                ) : (
+                  <Circle className="h-[22px] w-[22px] text-white/25" />
+                )}
+              </span>
+              <div className="min-w-0 flex-1 pt-0.5">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <p className={cn("text-sm font-medium", state === "pending" ? "text-white/35" : "text-white/85")}>{m.label}</p>
+                  {i === active && <StatusBadge status={status} />}
+                </div>
+                <p className="mt-0.5 text-xs leading-relaxed text-white/40">
+                  {state === "done" && allocationDetail && i === 3 ? allocationDetail : state === "done" && refundDetail && i === 4 ? refundDetail : i === active ? m.desc : ""}
+                </p>
+              </div>
+            </li>
+          );
+        })}
+      </ol>
     </div>
   );
 }

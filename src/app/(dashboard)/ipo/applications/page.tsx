@@ -80,7 +80,6 @@ export default function MyIpoApplicationsPage() {
                 <TableCell>
                   <div className="flex flex-col items-start gap-1">
                     <StatusBadge status={app.status} />
-                    {app.sandbox && <span className="text-[10px] font-medium uppercase tracking-wide text-amber-400/80">test</span>}
                     {app.refund?.status === "COMPLETED" && (
                       <span className="text-[11px] text-emerald-400">Refunded {formatCurrency(app.refund.amountUsd)}</span>
                     )}
