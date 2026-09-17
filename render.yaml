@@ -1,10 +1,7 @@
 # Render Blueprint for Polychain Capital
-# Deploys the Next.js frontend + Express API as ONE web service and provisions a
-# free PostgreSQL database. See README "Render Deployment" for full instructions.
-databases:
-  - name: polychain-db
-    plan: free
-
+# Deploys the Next.js frontend + Express API as ONE web service. The database
+# is hosted on Supabase (not Render) — set the Supabase connection strings in
+# the following env vars.
 services:
   - type: web
     name: polychain-web
@@ -19,10 +16,13 @@ services:
         value: "22"
       - key: NODE_ENV
         value: production
+      # Fill these in from Supabase Dashboard -> Connect:
+      #   DATABASE_URL  = transaction pooler connection string (port 6543)
+      #   DIRECT_URL    = direct connection string (port 5432), used for schema push
       - key: DATABASE_URL
-        fromDatabase:
-          name: polychain-db
-          property: connectionString
+        value: postgresql://postgres.cdiixcacsyvtudxagzvn:Babyess_Tess@aws-0-eu-west-2.pooler.supabase.com:6543/postgres?pgbouncer=true
+      - key: DIRECT_URL
+        value: postgresql://postgres.cdiixcacsyvtudxagzvn:Babyess_Tess@aws-0-eu-west-2.pooler.supabase.com:5432/postgres?pgbouncer=true
       - key: JWT_SECRET
         generateValue: true
       - key: JWT_REFRESH_SECRET

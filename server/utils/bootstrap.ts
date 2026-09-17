@@ -55,7 +55,11 @@ export async function seedIpoOffering() {
   const created = await prisma.ipo.create({ data: draft as never, include: { applications: { take: 1 } } });
   const status = applyAutoStatus(created);
   await prisma.ipo.update({ where: { id: created.id }, data: { status: status as never } });
-  await prisma.siteSetting.create({ data: { key: "ipoSandbox", value: String(sandbox) } });
+  await prisma.siteSetting.upsert({
+    where: { key: "ipoSandbox" },
+    update: {},
+    create: { key: "ipoSandbox", value: String(sandbox) },
+  });
   console.log(`[bootstrap] Seeded Dangote Refinery IPO (id ${created.id}, sandbox=${sandbox})`);
 }
 

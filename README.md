@@ -66,7 +66,8 @@ Key variables — see `.env.example` for all.
 
 | Variable                 | Purpose                                  |
 |--------------------------|------------------------------------------|
-| `DATABASE_URL`           | PostgreSQL connection string             |
+| `DATABASE_URL`           | Supabase PostgreSQL (transaction pooler, port 6543) |
+| `DIRECT_URL`             | Supabase direct connection (port 5432), used for Prisma migrations |
 | `JWT_SECRET`             | Access-token signing secret              |
 | `JWT_REFRESH_SECRET`     | Refresh-token signing secret             |
 | `NEXT_PUBLIC_API_URL`    | API base URL used by the browser         |

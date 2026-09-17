@@ -2,9 +2,11 @@
 set -euo pipefail
 
 echo "[render] DATABASE_URL set: ${DATABASE_URL:+yes}"
+echo "[render] DIRECT_URL set: ${DIRECT_URL:+yes}"
 
-# The free Postgres instance can take a while to become reachable on first
-# provision. Retry `prisma db push` instead of crashing the whole deploy.
+# The database is hosted on Supabase. `prisma db push` uses DIRECT_URL (the
+# direct connection) so schema changes bypass the transaction pooler. Retry in
+# case the DB is still warming up on first deploy.
 for i in 1 2 3 4 5 6 7 8 9 10; do
   if npx prisma db push --skip-generate; then
     break

@@ -38,6 +38,7 @@ const limiter = rateLimit({
   max: 600,
   standardHeaders: true,
   legacyHeaders: false,
+  validate: { trustProxy: false },
 });
 app.use("/api/auth", rateLimit({ windowMs: 10 * 60 * 1000, max: 50 }));
 app.use(limiter);
