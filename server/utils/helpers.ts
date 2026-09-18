@@ -6,17 +6,14 @@ export function generateReference(prefix: string) {
 
 export function appNamePrefix(appName?: string) {
   const name = appName || process.env.NEXT_PUBLIC_APP_NAME || "Polychain Capital";
-  const initials = name
-    .split(/[^A-Za-z0-9]+/)
-    .filter(Boolean)
-    .map((w) => w[0]!.toUpperCase())
-    .join("")
-    .slice(0, 3);
-  return initials || "NV";
+  // Keep the platform name visible in the referral code (for example,
+  // POLYCHAINCAPITAL-AB12CD34) while excluding URL/query-string punctuation.
+  const readableName = name.replace(/[^A-Za-z0-9]/g, "").toUpperCase();
+  return readableName || "NV";
 }
 
 export function generateReferralCode(appName?: string) {
-  return `${appNamePrefix(appName)}${nanoid(8).toUpperCase()}`;
+  return `${appNamePrefix(appName)}-${nanoid(8).toUpperCase()}`;
 }
 
 export function sanitizeUser(user: {
