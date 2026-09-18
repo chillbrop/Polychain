@@ -161,14 +161,16 @@ router.post("/subscriptions/:id/pay", requireAuth, validate(paySchema), async (r
   }
 
   const paidResult = await prisma.$transaction(async (tx) => {
-    await tx.ipoApplication.update({ where: { id: app.id }, data: { status: "PAYMENT_PENDING" } });
     const transactionRef = generateReference("IPOP");
-    await tx.ipoApplication.update({
-      where: { id: app.id },
-      data: { status: "PAID", paidAt: new Date(), transactionRef, sandbox: isSandbox },
-    });
     if (!isSandbox) {
-      await tx.user.update({ where: { id: app.userId }, data: { walletBalance: { decrement: app.amountUsd } } });
+      // Debit conditionally so two simultaneous purchases can never overdraw a wallet.
+      const debit = await tx.user.updateMany({
+        where: { id: app.userId, walletBalance: { gte: app.amountUsd } },
+        data: { walletBalance: { decrement: app.amountUsd } },
+      });
+      if (debit.count !== 1) {
+        throw new Error("INSUFFICIENT_WALLET_BALANCE");
+      }
       await tx.transaction.create({
         data: {
           userId: app.userId,
@@ -183,6 +185,10 @@ router.post("/subscriptions/:id/pay", requireAuth, validate(paySchema), async (r
       });
       await tx.activity.create({ data: { userId: app.userId, action: `Subscribed to ${app.ipo.name} IPO (${app.shares} shares)` } });
     }
+    await tx.ipoApplication.update({
+      where: { id: app.id },
+      data: { status: "PAID", paidAt: new Date(), transactionRef, sandbox: isSandbox },
+    });
     await tx.notification.create({
       data: {
         userId: app.userId,
@@ -192,7 +198,14 @@ router.post("/subscriptions/:id/pay", requireAuth, validate(paySchema), async (r
       },
     });
     return transactionRef;
+  }).catch((error: unknown) => {
+    if (error instanceof Error && error.message === "INSUFFICIENT_WALLET_BALANCE") return null;
+    throw error;
   });
+
+  if (!paidResult) {
+    return res.status(400).json({ error: `Insufficient wallet balance. You need $${app.amountUsd.toFixed(2)} to complete this subscription. Please deposit funds first.` });
+  }
 
   const { subject, html } = ipoPaidEmail({
     username: app.user.username,
@@ -243,6 +256,15 @@ router.post("/:slug/subscriptions", requireAuth, validate(subscribeSchema), asyn
     return res.status(503).json({ error: (error as Error).message });
   }
   const pricing = calculateIpoAmount(shares, ipo.pricePerShare, ipo.feePct);
+
+  // Do not create a pending application for a live offering that the wallet
+  // cannot fund.
+  if (!ipo.sandbox) {
+    const user = await prisma.user.findUnique({ where: { id: req.userId! }, select: { walletBalance: true } });
+    if (!user || user.walletBalance < amountUsd) {
+      return res.status(400).json({ error: `Insufficient wallet balance. You need $${amountUsd.toFixed(2)} to complete this subscription. Please deposit funds first.` });
+    }
+  }
 
   const app = await prisma.ipoApplication.create({
     data: {

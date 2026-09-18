@@ -142,7 +142,14 @@ export default function IpoDetailPage() {
         toast({ title: "Invalid quantity", description: q.validationError, variant: "destructive" });
         return;
       }
-      setStep(2);
+
+      // An approved investor can finish from Review. If funds are insufficient,
+      // keep the quote visible so they know exactly what needs to be deposited.
+      if (profile?.status === "APPROVED" && (q.sandbox || q.walletBalance >= q.quote!.amountUsd)) {
+        await confirmSubscribe();
+        return;
+      }
+      setStep(profile?.status === "APPROVED" ? 2 : 1);
     } catch (e) {
       toast({ title: "Quote unavailable", description: (e as Error).message, variant: "destructive" });
     }
@@ -287,7 +294,7 @@ export default function IpoDetailPage() {
                   <div className="flex items-center justify-between">
                     <Link href="/ipo" className="text-sm text-white/50 hover:text-gold">Cancel</Link>
                     <Button variant="gold" onClick={fetchQuote}>
-                      Review <ChevronRight className="h-4 w-4" />
+                      Review & buy <ChevronRight className="h-4 w-4" />
                     </Button>
                   </div>
                 </>
@@ -411,7 +418,7 @@ export default function IpoDetailPage() {
                   {verifyStatus === "APPROVED" && (
                     <div className="flex justify-between">
                       <Button variant="ghost" onClick={() => setStep(0)}>Back</Button>
-                      <Button variant="gold" onClick={fetchQuote}>Review <ChevronRight className="h-4 w-4" /></Button>
+                      <Button variant="gold" onClick={fetchQuote}>Review & buy <ChevronRight className="h-4 w-4" /></Button>
                     </div>
                   )}
                 </div>
@@ -436,9 +443,9 @@ export default function IpoDetailPage() {
                   </div>
                   <div className="flex justify-between">
                     <Button variant="ghost" onClick={() => setStep(1)}>Back</Button>
-                    <Button variant="gold" onClick={confirmSubscribe} disabled={submitting}>
+                    <Button variant="gold" onClick={confirmSubscribe} disabled={submitting || (!quote.sandbox && quote.walletBalance < quote.quote.amountUsd)}>
                       {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
-                      Confirm & pay
+                      {quote.walletBalance < quote.quote.amountUsd && !quote.sandbox ? "Insufficient balance" : "Confirm & pay"}
                     </Button>
                   </div>
                 </div>
