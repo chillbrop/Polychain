@@ -9,7 +9,9 @@ export const config = {
   jwtRefreshSecret: process.env.JWT_REFRESH_SECRET || "dev-refresh-secret",
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || "7d",
   cookieSecure: process.env.COOKIE_SECURE === "true",
-  siteUrl: (process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000").replace(/\/+$/, ""),
+  // Keep generated links shareable even when the environment variable has
+  // not yet been set in a deployment. A custom domain can override this.
+  siteUrl: (process.env.NEXT_PUBLIC_SITE_URL || "https://polychain-web.onrender.com").replace(/\/+$/, ""),
   appName: process.env.NEXT_PUBLIC_APP_NAME || "Polychain Capital",
   apiUrl: process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000",
   mailFrom: process.env.MAIL_FROM || "Polychain Capital <no-reply@polychaincapital.example>",
