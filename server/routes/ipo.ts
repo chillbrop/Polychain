@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { z } from "zod";
+import { config } from "../config";
 import { prisma } from "../prisma";
 import { requireAuth, AuthRequest } from "../middleware/auth";
 import { validate } from "../middleware/error";
@@ -18,12 +19,11 @@ import { ipoNewApplicationEmail, ipoPaidEmail, notifyAdmins, sendMail } from "..
 const router = Router();
 
 async function getNgnUsdRate(): Promise<number> {
-  const setting = await prisma.siteSetting.findUnique({ where: { key: "paystackUsdRate" } });
-  const rate = setting ? Number(setting.value) : 0;
+  const setting = await prisma.siteSetting.findUnique({ where: { key: "ipoNgnUsdRate" } });
+  const configured = setting ? Number(setting.value) : Number.NaN;
+  const rate = Number.isFinite(configured) && configured > 0 ? configured : config.ipo.ngnUsdRate;
   if (Number.isFinite(rate) && rate > 0) return rate;
-  const envRate = Number(process.env.PAYSTACK_USD_RATE || "0");
-  if (Number.isFinite(envRate) && envRate > 0) return envRate;
-  throw new Error("The NGN/USD exchange rate is not configured. Ask an administrator to set paystackUsdRate.");
+  throw new Error("The NGN/USD exchange rate is not configured. Ask an administrator to set ipoNgnUsdRate.");
 }
 
 async function refreshAndLoad(slug: string, publishedOnly = true) {

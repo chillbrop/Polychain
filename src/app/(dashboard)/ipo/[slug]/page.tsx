@@ -143,6 +143,10 @@ export default function IpoDetailPage() {
         return;
       }
 
+      if (!q.sandbox && q.walletBalance < q.quote!.amountUsd) {
+        toast({ title: "Insufficient wallet balance", description: `You need ${usd(q.quote!.amountUsd)} to complete this subscription.`, variant: "destructive" });
+      }
+
       // An approved investor can finish from Review. If funds are insufficient,
       // keep the quote visible so they know exactly what needs to be deposited.
       if (profile?.status === "APPROVED" && (q.sandbox || q.walletBalance >= q.quote!.amountUsd)) {

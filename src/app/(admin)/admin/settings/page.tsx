@@ -7,7 +7,7 @@ import { get, patch } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
 
-const defaultKeys = ["siteName", "siteEmail", "supportEmail", "telegram", "whatsapp", "minDeposit", "minWithdraw", "referralBonusPct", "paystackUsdRate", "mpesaUsdRate", "maintenanceMode", "welcomeBonus"];
+const defaultKeys = ["siteName", "siteEmail", "supportEmail", "telegram", "whatsapp", "minDeposit", "minWithdraw", "referralBonusPct", "paystackUsdRate", "ipoNgnUsdRate", "mpesaUsdRate", "maintenanceMode", "welcomeBonus"];
 
 export default function AdminSettingsPage() {
   const queryClient = useQueryClient();
@@ -98,7 +98,7 @@ export default function AdminSettingsPage() {
       </div>
 
       <div className="rounded-2xl border border-sky-400/20 bg-sky-400/[0.05] p-4 text-sm text-sky-200/80">
-        Known keys: <code className="font-mono">siteName, siteEmail, supportEmail, telegram, whatsapp, minDeposit, minWithdraw, referralBonusPct, paystackUsdRate, mpesaUsdRate, maintenanceMode, welcomeBonus</code>. Payment rates are native currency units per USD (for example, NGN/KES per $1) and are locked onto each payment when it starts.
+        Known keys: <code className="font-mono">siteName, siteEmail, supportEmail, telegram, whatsapp, minDeposit, minWithdraw, referralBonusPct, paystackUsdRate, ipoNgnUsdRate, mpesaUsdRate, maintenanceMode, welcomeBonus</code>. Payment and IPO rates are native currency units per USD (for example, NGN/KES per $1) and are locked onto each payment or IPO quote when it starts.
       </div>
     </div>
   );
