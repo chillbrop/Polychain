@@ -22,7 +22,7 @@ const features = [
   {
     icon: Users,
     title: "Powerful Referral Engine",
-    description: "Earn up to 10% commission on every investment your referrals make — a self-funding acquisition engine.",
+    description: "Earn 5% of every confirmed deposit your direct referrals make.",
   },
   {
     icon: Globe2,

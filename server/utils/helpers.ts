@@ -4,8 +4,19 @@ export function generateReference(prefix: string) {
   return `${prefix}${Date.now().toString(36).toUpperCase()}${nanoid(6).toUpperCase()}`;
 }
 
-export function generateReferralCode() {
-  return `NV${nanoid(8).toUpperCase()}`;
+export function appNamePrefix(appName?: string) {
+  const name = appName || process.env.NEXT_PUBLIC_APP_NAME || "Polychain Capital";
+  const initials = name
+    .split(/[^A-Za-z0-9]+/)
+    .filter(Boolean)
+    .map((w) => w[0]!.toUpperCase())
+    .join("")
+    .slice(0, 3);
+  return initials || "NV";
+}
+
+export function generateReferralCode(appName?: string) {
+  return `${appNamePrefix(appName)}${nanoid(8).toUpperCase()}`;
 }
 
 export function sanitizeUser(user: {

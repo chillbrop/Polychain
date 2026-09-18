@@ -14,6 +14,7 @@ import { SkeletonCardGrid } from "@/components/shared/skeletons";
 interface ReferralsData {
   referralLink: string;
   referralCode: string;
+  appName: string;
   totalReferrals: number;
   activeReferrals: number;
   totalCommission: number;
@@ -45,6 +46,23 @@ export default function ReferralsPage() {
     refetchInterval: 30000,
   });
 
+  const appName = data?.appName || process.env.NEXT_PUBLIC_APP_NAME || "Polychain Capital";
+  const shareText = `Join ${appName} with my referral link and start growing your digital assets:`;
+
+  const share = async () => {
+    if (!data) return;
+    const payload = { title: `Join ${appName}`, text: shareText, url: data.referralLink };
+    if (typeof navigator !== "undefined" && "share" in navigator) {
+      try {
+        await (navigator as Navigator & { share: (d: typeof payload) => Promise<void> }).share(payload);
+        return;
+      } catch {
+        // user cancelled — fall through to copy
+      }
+    }
+    await copy(`${shareText} ${data.referralLink}`, "Referral link");
+  };
+
   const copy = async (text: string, label: string) => {
     try {
       await navigator.clipboard.writeText(text);
@@ -69,7 +87,7 @@ export default function ReferralsPage() {
     <div className="space-y-8">
       <div>
         <h1 className="font-display text-2xl font-bold">Referral Program</h1>
-        <p className="mt-1 text-sm text-white/50">Invite friends and earn {data.referralBonusPct}% on every investment they make.</p>
+        <p className="mt-1 text-sm text-white/50">Invite friends and earn {data.referralBonusPct}% of every confirmed deposit they make.</p>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -108,9 +126,9 @@ export default function ReferralsPage() {
             </div>
           </div>
 
-          <button className="inline-flex items-center gap-2 text-sm text-gold hover:underline">
+          <button onClick={share} className="inline-flex items-center gap-2 text-sm text-gold hover:underline">
             <Send className="h-4 w-4" />
-            Share via email or social
+            Share {appName} via email or social
           </button>
         </div>
 
@@ -119,8 +137,8 @@ export default function ReferralsPage() {
           <ol className="mt-5 space-y-4">
             {[
               "Share your unique link with friends.",
-              "They sign up and start investing.",
-              "You instantly earn 10% of their investment.",
+              "They sign up and make a deposit.",
+              `You earn ${data.referralBonusPct}% of each confirmed deposit.`,
               "Repeat — no caps, no expiration.",
             ].map((step, i) => (
               <li key={step} className="flex items-start gap-3 text-sm text-white/60">
@@ -130,7 +148,7 @@ export default function ReferralsPage() {
             ))}
           </ol>
           <div className="mt-6 rounded-xl border border-emerald-400/20 bg-emerald-400/[0.06] p-4">
-            <p className="text-xs text-emerald-300">Pro tip: referrals who upgrade to paid plans earn you commission on every single plan.</p>
+            <p className="text-xs text-emerald-300">Referral commissions are added to your wallet after each deposit is confirmed.</p>
           </div>
         </div>
       </div>

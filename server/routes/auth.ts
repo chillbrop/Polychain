@@ -43,8 +43,9 @@ router.post("/register", validate(registerSchema), async (req, res) => {
 
   let referredBy: string | undefined;
   if (referralCode) {
-    const referrer = await prisma.user.findUnique({ where: { referralCode: referralCode.toUpperCase() } });
-    if (referrer) referredBy = referrer.id;
+    const referrer = await prisma.user.findUnique({ where: { referralCode: referralCode.trim().toUpperCase() } });
+    if (!referrer) return res.status(400).json({ error: "This referral link is invalid or has expired." });
+    referredBy = referrer.id;
   }
 
   const passwordHash = await bcrypt.hash(password, 12);

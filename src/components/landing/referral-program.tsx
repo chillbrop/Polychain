@@ -31,8 +31,8 @@ export function ReferralProgram() {
               Grow your network, <span className="text-gradient-gold">earn forever</span>
             </h2>
             <p className="mt-4 text-white/60">
-              Invite friends to Polychain Capital and earn a 10% commission on every investment they make.
-              No caps, no expiry — your referral income compounds with their growth.
+              Invite friends to Polychain Capital and earn 5% of every confirmed deposit they make.
+              No caps, no expiry — your referral income grows with their deposits.
             </p>
 
             <div className="mt-8 flex flex-wrap gap-8">
@@ -87,8 +87,7 @@ export function ReferralProgram() {
                 <div className="mt-8 space-y-4">
                   {[
                     { name: "You", level: "Level 0", amount: "+$1,240.00", depth: 0 },
-                    { name: "Direct referrals", level: "Level 1 · 10%", amount: "+$890.00", depth: 1 },
-                    { name: "Network referrals", level: "Level 2 · 5%", amount: "+$350.00", depth: 2 },
+                    { name: "Direct referrals", level: "Direct · 5%", amount: "+$445.00", depth: 1 },
                   ].map(({ name, level, amount, depth }) => (
                     <div
                       key={name}

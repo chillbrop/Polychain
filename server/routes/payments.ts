@@ -7,6 +7,7 @@ import { validate } from "../middleware/error";
 import { prisma } from "../prisma";
 import { generateReference } from "../utils/helpers";
 import { paymentReceivedEmail, notifyAdmins } from "../utils/mail";
+import { creditDepositReferralCommission } from "../utils/referrals";
 
 const router = Router();
 
@@ -69,6 +70,7 @@ async function creditPayment(payment: PaymentRecord, metadata?: object) {
         },
       },
     });
+    await creditDepositReferralCommission(tx, payment.userId, payment.creditedAmount, payment.reference);
     await tx.notification.create({
       data: {
         userId: payment.userId,

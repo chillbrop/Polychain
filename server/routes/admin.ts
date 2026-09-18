@@ -6,6 +6,7 @@ import { requireAuth, requireAdmin, AuthRequest } from "../middleware/auth";
 import { sanitizeUser, paginate } from "../utils/helpers";
 import { accrueProfits } from "./investments";
 import { paymentReceivedEmail, notifyAdmins } from "../utils/mail";
+import { creditDepositReferralCommission } from "../utils/referrals";
 
 const router = Router();
 router.use(requireAuth, requireAdmin);
@@ -165,10 +166,15 @@ router.post("/deposits/:id/review", validate(depositActionSchema), async (req: A
   if (deposit.status !== "PENDING") return res.status(400).json({ error: "Deposit already reviewed" });
 
   if (action === "APPROVE") {
-    await prisma.$transaction([
-      prisma.depositRequest.update({ where: { id: deposit.id }, data: { status: "COMPLETED", reviewedBy: req.userId, reviewedAt: new Date(), note } }),
-      prisma.user.update({ where: { id: deposit.userId }, data: { walletBalance: { increment: deposit.amount }, totalDeposited: { increment: deposit.amount } } }),
-      prisma.transaction.create({
+    const approved = await prisma.$transaction(async (tx) => {
+      const claimed = await tx.depositRequest.updateMany({
+        where: { id: deposit.id, status: "PENDING" },
+        data: { status: "COMPLETED", reviewedBy: req.userId, reviewedAt: new Date(), note },
+      });
+      if (claimed.count === 0) return false;
+
+      await tx.user.update({ where: { id: deposit.userId }, data: { walletBalance: { increment: deposit.amount }, totalDeposited: { increment: deposit.amount } } });
+      await tx.transaction.create({
         data: {
           userId: deposit.userId,
           type: "DEPOSIT",
@@ -178,11 +184,14 @@ router.post("/deposits/:id/review", validate(depositActionSchema), async (req: A
           reference: `DPS${deposit.id.slice(-8).toUpperCase()}`,
           currency: deposit.currency,
         },
-      }),
-      prisma.notification.create({
+      });
+      await creditDepositReferralCommission(tx, deposit.userId, deposit.amount, `DPS-${deposit.id}`);
+      await tx.notification.create({
         data: { userId: deposit.userId, title: "Deposit confirmed", message: `Your deposit of $${deposit.amount.toFixed(2)} has been confirmed and credited to your wallet.`, type: "success" },
-      }),
-    ]);
+      });
+      return true;
+    });
+    if (!approved) return res.status(400).json({ error: "Deposit already reviewed" });
     await log(req, "APPROVE_DEPOSIT", "DepositRequest", deposit.id, { amount: deposit.amount });
     const activeInvestments = await prisma.investment.findMany({
       where: { userId: deposit.userId, status: "ACTIVE", endDate: { gt: new Date() } },

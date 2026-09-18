@@ -9,7 +9,8 @@ export const config = {
   jwtRefreshSecret: process.env.JWT_REFRESH_SECRET || "dev-refresh-secret",
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || "7d",
   cookieSecure: process.env.COOKIE_SECURE === "true",
-  siteUrl: process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
+  siteUrl: (process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000").replace(/\/+$/, ""),
+  appName: process.env.NEXT_PUBLIC_APP_NAME || "Polychain Capital",
   apiUrl: process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000",
   mailFrom: process.env.MAIL_FROM || "Polychain Capital <no-reply@polychaincapital.example>",
   smtp: {
@@ -34,7 +35,7 @@ export const config = {
     BTC: process.env.BTC_ADDRESS || "bc1q5rzl3hvlkqvxlp6q9hnysd3zfkpkvt7w2l0kaf",
     ETH: process.env.ETH_ADDRESS || "0x5F4f7f9C2fB3e5a9C6b1aE8f9a4B3c2D1e0F9a8b",
   },
-  referralBonusPct: 10,
+  referralBonusPct: 5,
   dailyAccrualEnabled: true,
   payments: {
     paystackSecretKey: process.env.PAYSTACK_SECRET_KEY || "",

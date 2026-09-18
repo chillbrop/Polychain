@@ -32,7 +32,7 @@ const faqs = [
   {
     question: "How does the referral program work?",
     answer:
-      "Share your unique referral link. You earn 10% commission on every investment your direct referrals make, credited instantly to your balance. There's no cap on how much you can earn.",
+      "Share your unique referral link. You earn 5% of every confirmed deposit your direct referrals make, credited to your wallet. There's no cap on how much you can earn.",
   },
   {
     question: "How long does the deposit take to confirm?",

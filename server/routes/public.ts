@@ -3,7 +3,7 @@ import { z } from "zod";
 import { prisma } from "../prisma";
 import { config } from "../config";
 import { validate } from "../middleware/error";
-import { generateReference } from "../utils/helpers";
+import { generateReference, appNamePrefix } from "../utils/helpers";
 
 const router = Router();
 
@@ -80,7 +80,7 @@ router.post("/contact", validate(contactSchema), async (req, res) => {
             email: email.toLowerCase(),
             username: `guest_${Date.now().toString(36)}`,
             passwordHash: "$2a$12$invalidguest",
-            referralCode: `NVGUEST${Math.random().toString(36).slice(2, 6).toUpperCase()}`,
+            referralCode: `${appNamePrefix()}GUEST${Math.random().toString(36).slice(2, 6).toUpperCase()}`,
           },
         },
       },
