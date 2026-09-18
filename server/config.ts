@@ -33,7 +33,7 @@ export const config = {
     sandboxByDefault: process.env.IPO_SANDBOX_BY_DEFAULT !== "false",
     // Native NGN required for one USD of wallet balance. This can be
     // overridden in Admin → Site Settings with ipoNgnUsdRate.
-    ngnUsdRate: parseFloat(process.env.IPO_NGN_USD_RATE || process.env.PAYSTACK_USD_RATE || "1550"),
+    ngnUsdRate: parseFloat(process.env.IPO_NGN_USD_RATE || "1550"),
   },
   wallets: {
     USDT_TRC20: process.env.USDT_TRC20_ADDRESS || "TUNh5ZqN8hVPF6x9rKh3HcvbQz6Y9pPj2X",

@@ -288,7 +288,7 @@ async function main() {
         { key: "minWithdraw", value: "10" },
         { key: "referralBonusPct", value: "5" },
         { key: "paystackUsdRate", value: process.env.PAYSTACK_USD_RATE || "1550" },
-        { key: "ipoNgnUsdRate", value: process.env.IPO_NGN_USD_RATE || process.env.PAYSTACK_USD_RATE || "1550" },
+        { key: "ipoNgnUsdRate", value: process.env.IPO_NGN_USD_RATE || "1550" },
         { key: "mpesaUsdRate", value: process.env.MPESA_USD_RATE || "0" },
         { key: "ipoSandbox", value: "true" },
       ],
