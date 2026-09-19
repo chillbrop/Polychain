@@ -164,8 +164,8 @@ export default function IpoDetailPage() {
     try {
       await post("/ipo/profile", profileForm);
       await queryClient.invalidateQueries({ queryKey: ["ipo-profile"] });
-      toast({ title: "Verification submitted", description: "Your details are under review. You can return to subscribe once approved.", variant: "success" });
-      setStep(1);
+      toast({ title: "Profile saved", description: "Your investor details have been saved.", variant: "success" });
+      setStep(0);
     } catch (e) {
       toast({ title: "Could not save profile", description: (e as Error).message, variant: "destructive" });
     } finally {
@@ -413,7 +413,7 @@ export default function IpoDetailPage() {
                         <Button variant="ghost" onClick={() => { setStep(0); setQuote(null); }}>Back</Button>
                         <Button variant="gold" onClick={saveProfile} disabled={savingProfile}>
                           {savingProfile && <Loader2 className="h-4 w-4 animate-spin" />}
-                          Save & verify
+                          Save
                         </Button>
                       </div>
                     </div>
