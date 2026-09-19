@@ -22,7 +22,7 @@ router.get("/summary", async (req: AuthRequest, res) => {
 const depositSchema = z.object({
   body: z.object({
     amount: z.number().positive("Deposit amount must be positive").max(1000000),
-    currency: z.enum(["USDT_TRC20", "BTC", "ETH", "SOL", "LTC"]).default("USDT_TRC20"),
+    currency: z.enum(["USDT_TRC20", "BTC", "ETH", "SOL", "BSC"]).default("USDT_TRC20"),
     txHash: z.string().optional(),
   }),
 });
@@ -39,7 +39,7 @@ router.post("/deposit", validate(depositSchema), async (req: AuthRequest, res) =
 const withdrawSchema = z.object({
   body: z.object({
     amount: z.number().positive("Withdrawal amount must be positive"),
-    currency: z.enum(["USDT_TRC20", "BTC", "ETH", "SOL", "LTC"]).default("USDT_TRC20"),
+    currency: z.enum(["USDT_TRC20", "BTC", "ETH", "SOL", "BSC"]).default("USDT_TRC20"),
     address: z.string().min(10, "Enter a valid wallet address"),
   }),
 });

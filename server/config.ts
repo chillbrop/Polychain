@@ -40,7 +40,7 @@ export const config = {
     BTC: process.env.BTC_ADDRESS || "1QkeWSSS8yYamaukh8EY1y42s14NiDKW2",
     ETH: process.env.ETH_ADDRESS || "0x3b4eabb0d0d783439a97765250d49072acabef48",
     SOL: process.env.SOL_ADDRESS || "FuAZKScuzTS8nAbQvvvj67EwLPQHQ9naYGrumPo8RLfJ",
-    LTC: process.env.LTC_ADDRESS || "LTC_ADDRESS_HERE",
+    BSC: process.env.BSC_ADDRESS || "0x3b4eabb0d0d783439a97765250d49072acabef48",
   },
   referralBonusPct: 5,
   dailyAccrualEnabled: true,

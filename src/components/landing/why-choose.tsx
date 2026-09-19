@@ -27,7 +27,7 @@ const features = [
   {
     icon: Globe2,
     title: "Global & Accessible",
-    description: "Invest from anywhere in the world with USDT, Bitcoin or Ethereum. No bank accounts required.",
+    description: "Invest from anywhere in the world with USDT, Bitcoin, Ethereum, Solana or BSC. No bank accounts required.",
   },
   {
     icon: Headphones,

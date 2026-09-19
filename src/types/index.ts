@@ -6,7 +6,7 @@ export type TransactionStatus = "PENDING" | "COMPLETED" | "FAILED" | "CANCELLED"
 export type InvestmentStatus = "ACTIVE" | "COMPLETED" | "CANCELLED";
 export type WithdrawalStatus = "PENDING" | "PROCESSING" | "COMPLETED" | "REJECTED" | "CANCELLED";
 export type TicketStatus = "OPEN" | "PENDING" | "RESOLVED" | "CLOSED";
-export type Currency = "USDT_TRC20" | "BTC" | "ETH" | "SOL" | "LTC" | "BANK";
+export type Currency = "USDT_TRC20" | "BTC" | "ETH" | "SOL" | "BSC" | "BANK";
 
 export interface User {
   id: string;

@@ -28,7 +28,7 @@ const currencyMeta: Record<string, { label: string; symbol: string }> = {
   BTC: { label: "Bitcoin", symbol: "BTC" },
   ETH: { label: "Ethereum", symbol: "ETH" },
   SOL: { label: "Solana", symbol: "SOL" },
-  LTC: { label: "Litecoin", symbol: "LTC" },
+  BSC: { label: "BNB Smart Chain", symbol: "BNB" },
 };
 
 interface WalletSummary {
