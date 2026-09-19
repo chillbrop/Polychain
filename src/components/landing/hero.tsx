@@ -42,7 +42,7 @@ export function Hero() {
       <div className="absolute right-[5%] top-1/2 -translate-y-1/2 hidden lg:block">
         <div className="relative w-[380px] h-[380px]">
           <Image
-            src="/images/IMG-20260919-WA0119.jpg"
+            src="/images/TRON.jpg"
             alt="Polychain Capital platform"
             fill
             className="rounded-2xl border border-gold/20 shadow-2xl"

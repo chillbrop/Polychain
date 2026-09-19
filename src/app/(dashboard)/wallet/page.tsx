@@ -173,12 +173,12 @@ function MpesaDepositForm() {
 }
 
 const currencyImages: Record<Currency, string> = {
-  USDT_TRC20: "/images/IMG-20260919-WA0119.jpg",
-  BTC: "/images/IMG-20260919-WA0126.jpg",
-  ETH: "/images/IMG-20260919-WA0129.jpg",
-  SOL: "/images/IMG-20260919-WA0140.jpg",
-  BSC: "/images/IMG-20260919-WA0144.jpg",
-  BANK: "/images/IMG-20260919-WA0119.jpg",
+  USDT_TRC20: "/images/TRON.jpg",
+  BTC: "/images/BTC.jpg",
+  ETH: "/images/ETHERIUM.jpg",
+  SOL: "/images/sol.jpg",
+  BSC: "/images/BSC.jpg",
+  BANK: "/images/TRON.jpg",
 };
 
 function DepositForm({ addresses, onDone }: { addresses: Record<string, string>; onDone: () => void }) {

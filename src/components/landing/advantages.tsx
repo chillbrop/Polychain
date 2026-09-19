@@ -37,7 +37,7 @@ export function Advantages() {
           <Reveal>
             <div className="relative aspect-[4/3] max-w-lg mx-auto lg:mx-0">
               <Image
-                src="/images/IMG-20260919-WA0126.jpg"
+                src="/images/BTC.jpg"
                 alt="Polychain Capital advantages"
                 fill
                 className="rounded-2xl border border-gold/20 shadow-2xl object-cover"
