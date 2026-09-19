@@ -155,7 +155,7 @@ router.post("/kyc", validate(kycSchema), async (req: AuthRequest, res) => {
 
 const walletSchema = z.object({
   body: z.object({
-    currency: z.enum(["USDT_TRC20", "BTC", "ETH"]),
+    currency: z.enum(["USDT_TRC20", "BTC", "ETH", "SOL", "LTC"]),
     address: z.string().min(10),
     label: z.string().optional(),
   }),
