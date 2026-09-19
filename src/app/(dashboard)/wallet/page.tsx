@@ -27,6 +27,8 @@ const currencyMeta: Record<string, { label: string; symbol: string }> = {
   USDT_TRC20: { label: "USDT (TRC-20)", symbol: "USDT" },
   BTC: { label: "Bitcoin", symbol: "BTC" },
   ETH: { label: "Ethereum", symbol: "ETH" },
+  SOL: { label: "Solana", symbol: "SOL" },
+  LTC: { label: "Litecoin", symbol: "LTC" },
 };
 
 interface WalletSummary {

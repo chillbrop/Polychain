@@ -22,7 +22,7 @@ const faqs = [
   {
     question: "How and when can I withdraw?",
     answer:
-      "Withdrawals can be requested any time from your wallet page. USDT, BTC and ETH withdrawals are processed quickly, typically within minutes during business hours and are subject to a small network fee. Minimum withdrawal is $10.",
+      "Withdrawals can be requested any time from your wallet page. USDT, BTC, ETH, SOL and LTC withdrawals are processed quickly, typically within minutes during business hours and are subject to a small network fee. Minimum withdrawal is $10.",
   },
   {
     question: "Is my money safe with Polychain Capital?",
@@ -37,7 +37,7 @@ const faqs = [
   {
     question: "How long does the deposit take to confirm?",
     answer:
-      "USDT (TRC-20) deposits typically confirm within 1-2 minutes. BTC and ETH confirm based on network congestion. Once the transaction is confirmed on-chain, it's credited to your wallet automatically.",
+      "USDT (TRC-20) deposits typically confirm within 1-2 minutes. BTC, ETH, SOL and LTC confirm based on network congestion. Once the transaction is confirmed on-chain, it's credited to your wallet automatically.",
   },
   {
     question: "Do I need to complete KYC to invest?",
