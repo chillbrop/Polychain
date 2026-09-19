@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { QRCodeSVG } from "qrcode.react";
-import Image from "next/image";
 import {
   Copy,
   Check,
@@ -172,15 +171,6 @@ function MpesaDepositForm() {
   );
 }
 
-const currencyImages: Record<Currency, string> = {
-  USDT_TRC20: "/images/TRON.jpg",
-  BTC: "/images/BTC.jpg",
-  ETH: "/images/ETHERIUM.jpg",
-  SOL: "/images/sol.jpg",
-  BSC: "/images/BSC.jpg",
-  BANK: "/images/TRON.jpg",
-};
-
 function DepositForm({ addresses, onDone }: { addresses: Record<string, string>; onDone: () => void }) {
   const [currency, setCurrency] = useState<Currency>("USDT_TRC20");
   const [amount, setAmount] = useState("");
@@ -190,7 +180,6 @@ function DepositForm({ addresses, onDone }: { addresses: Record<string, string>;
 
   const meta = currencyMeta[currency];
   const address = addresses[currency] || "";
-  const currentImage = currencyImages[currency];
 
   const copyAddress = async () => {
     try {
@@ -229,17 +218,6 @@ function DepositForm({ addresses, onDone }: { addresses: Record<string, string>;
               ))}
             </SelectContent>
           </Select>
-        </div>
-
-        {/* Payment method image - changes based on selected currency */}
-        <div className="relative aspect-[4/3] rounded-2xl overflow-hidden border border-gold/20 bg-white/5">
-          <Image
-            src={currentImage}
-            alt={`${meta.label} payment method`}
-            fill
-            className="object-cover transition-opacity duration-300"
-            sizes="(max-width: 1024px) 100vw, 50vw"
-          />
         </div>
 
         <div>

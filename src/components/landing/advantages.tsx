@@ -3,7 +3,6 @@
 import { Fingerprint, KeyRound, Scale, Timer } from "lucide-react";
 import { Reveal } from "@/components/shared/reveal";
 import { AnimatedCounter } from "@/components/shared/animated-counter";
-import Image from "next/image";
 
 const advantages = [
   {
@@ -34,19 +33,6 @@ export function Advantages() {
       <div className="absolute inset-0 bg-navy-gradient opacity-60" />
       <div className="container relative">
         <div className="grid items-center gap-12 lg:grid-cols-2">
-          <Reveal>
-            <div className="relative aspect-[4/3] max-w-lg mx-auto lg:mx-0">
-              <Image
-                src="/images/BTC.jpg"
-                alt="Polychain Capital advantages"
-                fill
-                className="rounded-2xl border border-gold/20 shadow-2xl object-cover"
-                priority
-                sizes="(max-width: 1024px) 100vw, 50vw"
-              />
-            </div>
-          </Reveal>
-
           <Reveal>
             <p className="text-sm font-semibold uppercase tracking-[0.2em] text-gold">Company Advantages</p>
             <h2 className="mt-3 font-display text-3xl font-bold sm:text-5xl">

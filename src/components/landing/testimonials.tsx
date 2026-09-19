@@ -1,10 +1,9 @@
 "use client";
 
 import { Star, Quote } from "lucide-react";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { initials } from "@/lib/utils";
 import { Reveal } from "@/components/shared/reveal";
-import Image from "next/image";
 
 const testimonials = [
   {
@@ -12,21 +11,18 @@ const testimonials = [
     role: "Growth Plan · 8 months",
     rating: 5,
     text: "I started with the Growth plan in January and my returns have been credited daily like clockwork. The dashboard makes it effortless to track everything. This is the most professional platform I've used.",
-    image: "/images/ETHERIUM.jpg",
   },
   {
     name: "Daniel Reyes",
     role: "Pro Plan · 1 year",
     rating: 5,
     text: "Withdrew my first $2,000 in under an hour. The 24/7 support actually responds in minutes. Polychain Capital's transparency about rates and durations sold me immediately.",
-    image: "/images/sol.jpg",
   },
   {
     name: "Maya Lindqvist",
     role: "Institutional · 6 months",
     rating: 5,
     text: "As a fund manager, diligence matters. Polychain Capital's quarterly reports, audited contracts and dedicated manager exceeded every check on our list. Our allocation has grown 40% net.",
-    image: "/images/BSC.jpg",
   },
   {
     name: "Samuel Adeyemi",
@@ -63,7 +59,7 @@ export function Testimonials() {
         </Reveal>
 
         <div className="mt-14 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {testimonials.map(({ name, role, rating, text, image }, i) => (
+          {testimonials.map(({ name, role, rating, text }, i) => (
             <Reveal key={name} delay={i * 0.07}>
               <div className="glass-card relative h-full p-7 transition-all duration-300 hover:border-gold/30 hover:shadow-card-hover">
                 <Quote className="absolute right-6 top-6 h-8 w-8 text-gold/15" />
@@ -75,19 +71,7 @@ export function Testimonials() {
                 <p className="mt-4 text-sm leading-relaxed text-white/70">"{text}"</p>
                 <div className="mt-6 flex items-center gap-3 border-t border-white/[0.06] pt-5">
                   <Avatar className="h-10 w-10">
-                    {image ? (
-                      <AvatarImage>
-                        <Image
-                          src={image}
-                          alt={name}
-                          fill
-                          className="rounded-full object-cover"
-                          sizes="40px"
-                        />
-                      </AvatarImage>
-                    ) : (
-                      <AvatarFallback>{initials(name)}</AvatarFallback>
-                    )}
+                    <AvatarFallback>{initials(name)}</AvatarFallback>
                   </Avatar>
                   <div>
                     <p className="text-sm font-semibold">{name}</p>

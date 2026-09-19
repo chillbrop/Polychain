@@ -16,7 +16,6 @@ import {
 import { RippleButton } from "@/components/shared/ripple-button";
 import { AnimatedCounter } from "@/components/shared/animated-counter";
 import { useAuthStore } from "@/stores/auth-store";
-import Image from "next/image";
 
 const floatingIcons = [
   { Icon: Bitcoin, className: "left-[8%] top-[30%]", delay: 0 },
@@ -37,20 +36,6 @@ export function Hero() {
     <section className="relative overflow-hidden pb-24 pt-40">
       <div className="absolute inset-0 bg-hero-glow" />
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_50%_at_80%_20%,rgba(244,180,0,0.08),transparent)]" />
-
-      {/* Decorative image on the right */}
-      <div className="absolute right-[5%] top-1/2 -translate-y-1/2 hidden lg:block">
-        <div className="relative w-[380px] h-[380px]">
-          <Image
-            src="/images/TRON.jpg"
-            alt="Polychain Capital platform"
-            fill
-            className="rounded-2xl border border-gold/20 shadow-2xl"
-            priority
-            sizes="(max-width: 1024px) 100vw, 380px"
-          />
-        </div>
-      </div>
 
       {floatingIcons.map(({ Icon, className, delay }, i) => (
         <motion.div
