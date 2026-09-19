@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { QRCodeSVG } from "qrcode.react";
@@ -43,7 +43,6 @@ export default function WalletPage() {
   const initialTab = searchParams.get("tab") === "deposit" ? "deposit" : searchParams.get("tab") === "withdraw" ? "withdraw" : "overview";
   const [tab, setTab] = useState(initialTab);
   const queryClient = useQueryClient();
-  const verifiedReference = useRef<string | null>(null);
 
   const { data, isLoading } = useQuery<WalletSummary>({
     queryKey: ["wallet"],
@@ -51,18 +50,7 @@ export default function WalletPage() {
     refetchInterval: 30000,
   });
 
-  useEffect(() => {
-    const reference = searchParams.get("reference");
-    if (searchParams.get("payment") !== "paystack" || !reference || verifiedReference.current === reference) return;
-    verifiedReference.current = reference;
-    void post<{ creditedAmount: number }>("/payments/paystack/verify", { reference })
-      .then((result) => {
-        toast({ title: "Payment confirmed", description: `${formatCurrency(result.creditedAmount)} was added to your wallet.`, variant: "success" });
-        queryClient.invalidateQueries({ queryKey: ["wallet"] });
-        window.history.replaceState({}, "", "/wallet?tab=paystack");
-      })
-      .catch((error) => toast({ title: "Payment not confirmed yet", description: (error as Error).message, variant: "destructive" }));
-  }, [searchParams, queryClient]);
+  
 
   if (isLoading) {
     return (
@@ -113,7 +101,6 @@ export default function WalletPage() {
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="deposit">Crypto deposit</TabsTrigger>
-          <TabsTrigger value="paystack">Paystack</TabsTrigger>
           <TabsTrigger value="mpesa">M-Pesa</TabsTrigger>
           <TabsTrigger value="withdraw">Withdraw</TabsTrigger>
         </TabsList>
@@ -126,10 +113,6 @@ export default function WalletPage() {
           <DepositForm addresses={data!.walletAddresses} onDone={() => queryClient.invalidateQueries({ queryKey: ["wallet"] })} />
         </TabsContent>
 
-        <TabsContent value="paystack">
-          <PaystackDepositForm />
-        </TabsContent>
-
         <TabsContent value="mpesa">
           <MpesaDepositForm />
         </TabsContent>
@@ -138,33 +121,6 @@ export default function WalletPage() {
           <WithdrawForm user={user} onDone={() => queryClient.invalidateQueries({ queryKey: ["wallet"] })} />
         </TabsContent>
       </Tabs>
-    </div>
-  );
-}
-
-function PaystackDepositForm() {
-  const [amount, setAmount] = useState("");
-  const mutation = useMutation({
-    mutationFn: () => post<{ authorizationUrl: string }>("/payments/paystack/initialize", { amount: Number(amount) }),
-    onSuccess: (payment) => window.location.assign(payment.authorizationUrl),
-    onError: (error) => toast({ title: "Could not start Paystack", description: (error as Error).message, variant: "destructive" }),
-  });
-
-  return (
-    <div className="glass-card mx-auto max-w-xl space-y-5 p-8">
-      <div>
-        <h3 className="font-display text-lg font-semibold">Fund with Paystack</h3>
-        <p className="mt-1 text-sm text-white/45">Pay by card, bank transfer, or supported Paystack payment methods. You will be redirected to secure checkout.</p>
-      </div>
-      <div>
-        <label className="mb-1.5 block text-sm text-white/60">Wallet credit (USD)</label>
-        <input className="input-dark" type="number" min="1" step="0.01" placeholder="0.00" value={amount} onChange={(event) => setAmount(event.target.value)} />
-      </div>
-      <Button variant="gold" className="w-full" disabled={!Number(amount) || mutation.isPending} onClick={() => mutation.mutate()}>
-        {mutation.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
-        {mutation.isPending ? "Opening checkout..." : "Continue to Paystack"}
-      </Button>
-      <p className="text-center text-xs text-white/30">The final NGN amount and credited USD value are locked using the configured exchange rate before checkout opens.</p>
     </div>
   );
 }
