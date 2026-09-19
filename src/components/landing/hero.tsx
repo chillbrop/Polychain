@@ -16,6 +16,7 @@ import {
 import { RippleButton } from "@/components/shared/ripple-button";
 import { AnimatedCounter } from "@/components/shared/animated-counter";
 import { useAuthStore } from "@/stores/auth-store";
+import Image from "next/image";
 
 const floatingIcons = [
   { Icon: Bitcoin, className: "left-[8%] top-[30%]", delay: 0 },
@@ -37,6 +38,20 @@ export function Hero() {
       <div className="absolute inset-0 bg-hero-glow" />
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_50%_at_80%_20%,rgba(244,180,0,0.08),transparent)]" />
 
+      {/* Decorative image on the right */}
+      <div className="absolute right-[5%] top-1/2 -translate-y-1/2 hidden lg:block">
+        <div className="relative w-[380px] h-[380px]">
+          <Image
+            src="/images/IMG-20260919-WA0119.jpg"
+            alt="Polychain Capital platform"
+            fill
+            className="rounded-2xl border border-gold/20 shadow-2xl"
+            priority
+            sizes="(max-width: 1024px) 100vw, 380px"
+          />
+        </div>
+      </div>
+
       {floatingIcons.map(({ Icon, className, delay }, i) => (
         <motion.div
           key={i}
@@ -52,12 +67,12 @@ export function Hero() {
         </motion.div>
       ))}
 
-      <div className="container relative text-center">
+      <div className="container relative text-center lg:text-left">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="mx-auto mb-6 flex w-fit items-center gap-2 rounded-full border border-gold/25 bg-gold/10 px-4 py-1.5 text-sm text-gold"
+          className="mx-auto mb-6 flex w-fit items-center gap-2 rounded-full border border-gold/25 bg-gold/10 px-4 py-1.5 text-sm text-gold lg:mx-0"
         >
           <Sparkles className="h-4 w-4" />
           Trusted by investors in 40+ countries
@@ -67,7 +82,7 @@ export function Hero() {
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.1 }}
-          className="mx-auto max-w-4xl font-display text-4xl font-bold leading-[1.1] tracking-tight sm:text-6xl lg:text-7xl"
+          className="mx-auto max-w-4xl font-display text-4xl font-bold leading-[1.1] tracking-tight sm:text-6xl lg:text-7xl lg:mx-0"
         >
           Invest Smarter.
           <br />
@@ -78,7 +93,7 @@ export function Hero() {
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
-          className="mx-auto mt-6 max-w-2xl text-lg text-white/60"
+          className="mx-auto mt-6 max-w-2xl text-lg text-white/60 lg:mx-0"
         >
           Polychain Capital turns idle digital assets into a compounding growth engine. Secure, transparent
           and engineered for the modern investor — from your first dollar to your next million.
@@ -88,7 +103,7 @@ export function Hero() {
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.3 }}
-          className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row"
+          className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row lg:justify-start"
         >
           <Link href={user ? "/investments" : "/register"}>
             <RippleButton className="gold-btn h-13 rounded-xl px-8 py-3.5 text-base">
@@ -108,7 +123,7 @@ export function Hero() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.6, delay: 0.45 }}
-          className="mt-8 flex flex-wrap items-center justify-center gap-6"
+          className="mt-8 flex flex-wrap items-center justify-center gap-6 lg:justify-start"
         >
           {trustItems.map(({ icon: Icon, label }) => (
             <div key={label} className="flex items-center gap-2 text-sm text-white/50">
@@ -122,7 +137,7 @@ export function Hero() {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.55 }}
-          className="glass-card mx-auto mt-16 grid max-w-4xl grid-cols-1 gap-8 p-8 sm:grid-cols-3"
+          className="glass-card mx-auto mt-16 grid max-w-4xl grid-cols-1 gap-8 p-8 sm:grid-cols-3 lg:mx-0"
         >
           <div>
             <p className="text-sm text-white/50">Total Paid Out</p>
