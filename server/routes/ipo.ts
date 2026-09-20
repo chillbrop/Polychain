@@ -78,15 +78,15 @@ const emptyToUndefined = z.string().transform((val) => (val === "" ? undefined :
 
 const profileSchema = z.object({
   body: z.object({
-    fullName: z.string().min(3),
+    fullName: z.string().min(1).optional(),
     dob: emptyToUndefined.optional(),
     gender: emptyToUndefined.optional(),
-    nationality: z.string().min(2),
-    residencyCountry: z.string().min(2),
+    nationality: emptyToUndefined.optional(),
+    residencyCountry: emptyToUndefined.optional(),
     city: emptyToUndefined.optional(),
     address: emptyToUndefined.optional(),
     bvn: emptyToUndefined.refine((val) => !val || /^\d{11}$/.test(val), "BVN must be exactly 11 digits").optional(),
-    bankName: z.string().min(2),
+    bankName: z.string().min(1).optional(),
     accountNumber: emptyToUndefined.refine((val) => !val || /^\d{10}$/.test(val), "Account number must be exactly 10 digits").optional(),
     accountName: emptyToUndefined.optional(),
     cscsChn: emptyToUndefined.optional(),

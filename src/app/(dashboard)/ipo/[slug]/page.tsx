@@ -160,6 +160,24 @@ export default function IpoDetailPage() {
   };
 
   const saveProfile = async () => {
+    // Frontend validation for required fields
+    if (!profileForm.fullName || profileForm.fullName.trim().length < 3) {
+      toast({ title: "Validation error", description: "Full name must be at least 3 characters", variant: "destructive" });
+      return;
+    }
+    if (!profileForm.bankName || profileForm.bankName.trim().length < 2) {
+      toast({ title: "Validation error", description: "Bank name must be at least 2 characters", variant: "destructive" });
+      return;
+    }
+    if (!profileForm.nationality || profileForm.nationality.trim().length < 2) {
+      toast({ title: "Validation error", description: "Nationality is required", variant: "destructive" });
+      return;
+    }
+    if (!profileForm.residencyCountry || profileForm.residencyCountry.trim().length < 2) {
+      toast({ title: "Validation error", description: "Country of residence is required", variant: "destructive" });
+      return;
+    }
+
     setSavingProfile(true);
     try {
       await post("/ipo/profile", profileForm);
@@ -167,8 +185,10 @@ export default function IpoDetailPage() {
       toast({ title: "Profile saved", description: "Your investor details have been saved.", variant: "success" });
       // Go directly to review step (step 2) - skip verification
       setStep(2);
-    } catch (e) {
-      toast({ title: "Could not save profile", description: (e as Error).message, variant: "destructive" });
+    } catch (e: unknown) {
+      const err = e as { response?: { data?: { error?: string } }; message?: string };
+      const message = err.response?.data?.error || err.message || "Unknown error";
+      toast({ title: "Could not save profile", description: message, variant: "destructive" });
     } finally {
       setSavingProfile(false);
     }
