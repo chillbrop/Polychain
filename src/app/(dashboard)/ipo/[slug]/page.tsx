@@ -12,6 +12,7 @@ import {
   ChevronRight,
   CheckCircle2,
   Lock,
+  AlertTriangle,
   Loader2,
   Database,
   Banknote,
@@ -383,9 +384,8 @@ export default function IpoDetailPage() {
                         </Button>
                       </div>
                     </div>
+                  </div>
                   )}
-                </div>
-              )}
 
               {!wizardClosed && step === 2 && quote?.quote && (
                 <div className="space-y-5">
