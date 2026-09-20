@@ -12,7 +12,6 @@ import {
   ChevronRight,
   CheckCircle2,
   Lock,
-  AlertTriangle,
   Loader2,
   Database,
   Banknote,
@@ -30,7 +29,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { Progress } from "@/components/ui/progress";
 import { formatNaira, formatUSD, formatDate, formatCompactNgn, cn } from "@/lib/utils";
-import type { Ipo, IpoApplication, IpoDocument, IpoInvestorProfile, KycStatus, IpoStatus } from "@/types";
+import type { Ipo, IpoApplication, IpoDocument, IpoInvestorProfile, IpoStatus } from "@/types";
 
 interface IpoDetailResponse {
   ipo: Ipo;
@@ -165,7 +164,8 @@ export default function IpoDetailPage() {
       await post("/ipo/profile", profileForm);
       await queryClient.invalidateQueries({ queryKey: ["ipo-profile"] });
       toast({ title: "Profile saved", description: "Your investor details have been saved.", variant: "success" });
-      setStep(0);
+      // Go directly to review step (step 2) - skip verification
+      setStep(2);
     } catch (e) {
       toast({ title: "Could not save profile", description: (e as Error).message, variant: "destructive" });
     } finally {
@@ -189,7 +189,6 @@ export default function IpoDetailPage() {
     }
   };
 
-  const verifyStatus: KycStatus = profile?.status ?? "NOT_SUBMITTED";
   const wizardClosed = !canApply;
 
   return (
@@ -306,46 +305,13 @@ export default function IpoDetailPage() {
 
               {!wizardClosed && step === 1 && (
                 <div className="space-y-5">
-                  {profile && verifyStatus === "APPROVED" ? (
-                    <div className="flex items-start gap-3 rounded-2xl border border-emerald-400/25 bg-emerald-400/10 p-4 text-sm text-emerald-200">
-                      <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0" />
-                      <div>
-                        <p className="font-semibold">Verification approved — {profile.fullName}</p>
-                        <p className="mt-0.5 text-xs text-emerald-200/70">
-                          Your investor profile is approved. Proceed to review your quote.
-                        </p>
-                      </div>
-                    </div>
-                  ) : profile && verifyStatus === "PENDING" ? (
-                    <div className="flex items-start gap-3 rounded-2xl border border-gold/25 bg-gold/[0.08] p-4 text-sm text-gold">
-                      <Loader2 className="mt-0.5 h-5 w-5 shrink-0 animate-spin" />
-                      <div>
-                        <p className="font-semibold">Verification under review</p>
-                        <p className="mt-0.5 text-xs text-gold/70">
-                          Your investor details are being reviewed by our compliance team. You can subscribe as soon as you are approved.
-                        </p>
-                      </div>
-                    </div>
-                  ) : profile && verifyStatus === "REJECTED" ? (
-                    <div className="flex items-start gap-3 rounded-2xl border border-red-400/25 bg-red-400/10 p-4 text-sm text-red-200">
-                      <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" />
-                      <div>
-                        <p className="font-semibold">Verification rejected</p>
-                        <p className="mt-0.5 text-xs text-red-200/70">
-                          {profile.adminNote || "Please update your investor details to continue."}
-                        </p>
-                      </div>
-                    </div>
-                  ) : (
-                    <p className="text-sm text-white/60">
-                      Complete your investor verification once to unlock IPO subscriptions. Your BVN and account number are
-                      encrypted at rest and never shown in full.
-                    </p>
-                  )}
+                  <p className="text-sm text-white/60">
+                    Complete your investor details to continue. Your BVN and account number are
+                    encrypted at rest and never shown in full.
+                  </p>
 
-                  {(verifyStatus === "NOT_SUBMITTED" || verifyStatus === "REJECTED") && (
-                    <div className="space-y-4 rounded-2xl border border-white/[0.08] bg-white/[0.02] p-5">
-                      <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-4 rounded-2xl border border-white/[0.08] bg-white/[0.02] p-5">
+                    <div className="grid gap-4 sm:grid-cols-2">
                         <div className="sm:col-span-2">
                           <Label>Full legal name</Label>
                           <Input className="mt-1" value={profileForm.fullName} onChange={(e) => setProfileForm({ ...profileForm, fullName: e.target.value })} placeholder="e.g. Grace Okafor" />
@@ -413,16 +379,9 @@ export default function IpoDetailPage() {
                         <Button variant="ghost" onClick={() => { setStep(0); setQuote(null); }}>Back</Button>
                         <Button variant="gold" onClick={saveProfile} disabled={savingProfile}>
                           {savingProfile && <Loader2 className="h-4 w-4 animate-spin" />}
-                          Save
+                          Continue to review <ChevronRight className="h-4 w-4" />
                         </Button>
                       </div>
-                    </div>
-                  )}
-
-                  {verifyStatus === "APPROVED" && (
-                    <div className="flex justify-between">
-                      <Button variant="ghost" onClick={() => setStep(0)}>Back</Button>
-                      <Button variant="gold" onClick={fetchQuote}>Review & buy <ChevronRight className="h-4 w-4" /></Button>
                     </div>
                   )}
                 </div>
