@@ -74,23 +74,25 @@ router.get("/profile", requireAuth, async (req: AuthRequest, res) => {
   });
 });
 
+const emptyToUndefined = z.string().transform((val) => (val === "" ? undefined : val));
+
 const profileSchema = z.object({
   body: z.object({
     fullName: z.string().min(3),
-    dob: z.string().optional(),
-    gender: z.string().optional(),
+    dob: emptyToUndefined.optional(),
+    gender: emptyToUndefined.optional(),
     nationality: z.string().min(2),
     residencyCountry: z.string().min(2),
-    city: z.string().optional(),
-    address: z.string().optional(),
-    bvn: z.string().regex(/^\d{11}$/, "BVN must be exactly 11 digits").optional(),
+    city: emptyToUndefined.optional(),
+    address: emptyToUndefined.optional(),
+    bvn: emptyToUndefined.refine((val) => !val || /^\d{11}$/.test(val), "BVN must be exactly 11 digits").optional(),
     bankName: z.string().min(2),
-    accountNumber: z.string().regex(/^\d{10}$/, "Account number must be exactly 10 digits").optional(),
-    accountName: z.string().min(2).optional(),
-    cscsChn: z.string().optional(),
-    idType: z.string().optional(),
-    idNumber: z.string().min(4).optional(),
-    idDocumentUrl: z.string().url("Enter a valid document URL").optional(),
+    accountNumber: emptyToUndefined.refine((val) => !val || /^\d{10}$/.test(val), "Account number must be exactly 10 digits").optional(),
+    accountName: emptyToUndefined.optional(),
+    cscsChn: emptyToUndefined.optional(),
+    idType: emptyToUndefined.optional(),
+    idNumber: emptyToUndefined.refine((val) => !val || val.length >= 4, "ID number must be at least 4 characters").optional(),
+    idDocumentUrl: emptyToUndefined.refine((val) => !val || z.string().url().safeParse(val).success, "Enter a valid document URL").optional(),
   }),
 });
 
